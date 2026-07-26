@@ -1,0 +1,52 @@
+appId: com.sales-analytics.desktop
+productName: Sales Analytics
+directories:
+  output: release
+  buildResources: resources
+
+files:
+  - dist-electron/**/*
+
+extraResources:
+  - from: "../frontend/dist"
+    to: "frontend"
+  - from: "./build/backend"
+    to: "backend"
+  - from: "./resources/ollama"
+    to: "ollama"
+  - from: "./resources/ollama-models"
+    to: "ollama-models"
+  - from: "../app"
+    to: "app"
+  - from: "../requirements.txt"
+    to: "requirements.txt"
+  - from: "../data"
+    to: "data"
+  - from: "../.env"
+    to: ".env"
+
+mac:
+  target:
+    - target: dmg
+      arch:
+        - arm64
+        - x64
+    - target: zip
+      arch:
+        - arm64
+        - x64
+  icon: resources/icon.icns
+  category: public.app-category.business
+
+win:
+  target:
+    - nsis
+  icon: resources/icon.ico
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+
+asar: true
+asarUnpack:
+  - "backend/**/*"

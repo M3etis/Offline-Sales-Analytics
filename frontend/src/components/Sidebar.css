@@ -1,0 +1,154 @@
+.sidebar {
+  width: 260px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--border-color);
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.sidebar--collapsed {
+  width: 76px;
+}
+
+.sidebar__header {
+  padding: 24px 20px;
+}
+
+.sidebar__logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sidebar__logo-icon {
+  width: 24px;
+  height: 24px;
+  background: var(--accent);
+  border-radius: 4px;
+}
+
+.sidebar__logo h2 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.sidebar__nav {
+  flex: 1;
+  padding: 0 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sidebar__nav > div {
+  display: flex;
+}
+
+.sidebar__nav--margined {
+  margin-top: 20px;
+}
+
+.sidebar__link {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-weight: 500;
+  font-size: 0.95rem;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.sidebar__link svg {
+  flex-shrink: 0;
+  display: block;
+}
+
+.sidebar__link span {
+  transition:
+    opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  max-width: 200px;
+  opacity: 1;
+  line-height: 1;
+  display: block;
+}
+
+.sidebar--collapsed .sidebar__link {
+  gap: 0;
+}
+
+.sidebar--collapsed .sidebar__link span {
+  opacity: 0;
+  max-width: 0;
+}
+
+.sidebar__link:hover {
+  background: var(--bg-input);
+  color: var(--text-primary);
+}
+
+.sidebar__link--active {
+  background: var(--bg-card);
+  color: var(--text-primary);
+}
+
+.sidebar__footer {
+  padding: 16px;
+  border-top: 1px solid var(--border-color);
+}
+
+.sidebar__status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px;
+}
+
+.sidebar__status-icon {
+  color: var(--accent);
+}
+
+.sidebar__status-info {
+  display: flex;
+  flex-direction: column;
+  transition:
+    opacity 0.2s,
+    transform 0.2s;
+  transform-origin: left;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.sidebar--collapsed .sidebar__status {
+  justify-content: center;
+  padding-left: 0;
+  padding-right: 0;
+  gap: 0;
+}
+
+.sidebar--collapsed .sidebar__status-info {
+  opacity: 0;
+  transform: scaleX(0);
+  width: 0;
+}
+
+.sidebar__status-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.sidebar__status-value {
+  font-size: 0.85rem;
+  color: var(--text-primary);
+}

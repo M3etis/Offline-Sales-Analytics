@@ -1,0 +1,22 @@
+{
+  "name": "sales-analytics-desktop",
+  "version": "1.0.0",
+  "private": true,
+  "main": "dist-electron/main/index.js",
+  "scripts": {
+    "dev": "bash scripts/dev.sh",
+    "dev:electron": "electron dist-electron/main/index.js",
+    "build:frontend": "bash scripts/build-frontend.sh",
+    "build:backend": "bash scripts/build-backend.sh",
+    "build:electron": "tsc -p tsconfig.json && electron-builder --config electron-builder.yml",
+    "build:all": "npm run build:frontend && npm run build:backend && npm run build:electron",
+    "package": "bash scripts/package.sh"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "electron": "^35.0.0",
+    "electron-builder": "^26.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "~5.8.0"
+  }
+}

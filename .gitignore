@@ -1,0 +1,78 @@
+# Logs
+logs/
+*.log
+
+# Data
+*.duckdb
+*.duckdb.wal
+
+# General OS junk
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.Spotlight-V100
+.Trashes
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+venv/
+venv-x64/
+.venv/
+env/
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+dist/
+build/
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Desktop (Electron)
+desktop/node_modules/
+desktop/dist-electron/
+desktop/release/
+desktop/build/
+desktop/resources/ollama/
+desktop/resources/ollama-models/
+
+# Data files
+*.db
+*.duckdb
+*.duckdb.wal
+*.wav
+
+# Editor
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.mimocode

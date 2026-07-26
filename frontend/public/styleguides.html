@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Analytics - Design System & Styleguide</title>
+    <style>
+        :root {
+            color-scheme: dark;
+            --bg-main: #1e1f2b;
+            --bg-secondary: #16171f;
+            --bg-card: #313443;
+            --bg-input: #313443;
+            
+            --border-color: #424242;
+            --border-light: rgba(255, 255, 255, 0.1);
+            
+            --text-primary: #ececec;
+            --text-secondary: #b4b4b4;
+            --text-muted: #8e8e8e;
+            
+            --primary: #ececec;
+            --primary-hover: #ffffff;
+            --accent: #10a37f;
+            
+            --danger: #ef4444;
+            --bg-success: rgba(16, 185, 129, 0.1);
+            --border-success: rgba(16, 185, 129, 0.2);
+            
+            --font-family: "Inter", -apple-system, sans-serif;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 24px;
+        }
+
+        :root[data-theme="light"] {
+            color-scheme: light;
+            --bg-main: #f9fafb;
+            --bg-secondary: #ffffff;
+            --bg-card: #ffffff;
+            --bg-input: #ffffff;
+            --border-color: #e5e7eb;
+            --text-primary: #111827;
+            --text-secondary: #4b5563;
+            --text-muted: #6b7280;
+            --primary: #111827;
+            --danger: #dc2626;
+            --bg-success: #d1fae5;
+            --border-success: #6ee7b7;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background: var(--bg-main);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 40px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        h1, h2, h3 { font-weight: 600; margin-top: 0; }
+        h1 { font-size: 2.5rem; margin-bottom: 10px; border-bottom: 1px solid var(--border-color); padding-bottom: 20px;}
+        h2 { font-size: 1.8rem; margin-top: 40px; margin-bottom: 20px; color: var(--accent); }
+        h3 { font-size: 1.2rem; margin-bottom: 10px; color: var(--text-secondary); }
+
+        .section {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 30px;
+            margin-bottom: 40px;
+        }
+
+        /* Color Palette Grid */
+        .palette-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 20px;
+        }
+        .color-card {
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+        .color-swatch {
+            height: 100px;
+            width: 100%;
+        }
+        .color-info {
+            padding: 10px;
+            background: var(--bg-card);
+            font-size: 0.85rem;
+        }
+        .color-info strong { display: block; color: var(--text-primary); }
+        .color-info span { color: var(--text-muted); }
+
+        /* Buttons Component UI */
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center;
+            gap: 8px; padding: 10px 20px; border-radius: var(--radius-sm);
+            font-weight: 500; cursor: pointer; transition: all 0.2s ease;
+            border: 1px solid transparent; font-family: inherit; font-size: 0.95rem;
+        }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .btn:active:not(:disabled) { transform: translateY(1px); }
+
+        .btn--primary { background: var(--text-primary); color: var(--bg-main); border-color: transparent;}
+        .btn--primary:hover:not(:disabled) { background: var(--text-secondary); transform: translateY(-1px); }
+        
+        .btn--secondary { background: var(--bg-input); color: var(--text-primary); border-color: var(--border-color); }
+        .btn--secondary:hover:not(:disabled) { background: rgba(255, 255, 255, 0.05); border-color: var(--text-secondary); }
+        
+        .btn--tertiary { background: transparent; color: var(--text-muted); border-color: transparent;}
+        .btn--tertiary:hover:not(:disabled) { background: var(--bg-input); color: var(--text-primary); }
+
+        .btn--success { background: var(--bg-success); color: #10b981; border-color: var(--border-success); }
+        .btn--success:hover:not(:disabled) { background: rgba(16, 185, 129, 0.2); }
+
+        .btn--alert { background: var(--danger); color: #ffffff; border-color: transparent;}
+        .btn--alert:hover:not(:disabled) { background: #dc2626; }
+
+        .btn--icon { padding: 8px; border-radius: var(--radius-md); }
+        .btn--sm { padding: 6px 12px; font-size: 0.85rem; }
+        .btn--lg { padding: 14px 28px; font-size: 1.05rem; }
+
+        .component-row { display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px; align-items: center; }
+
+        /* Form Elements */
+        input[type="text"], select, textarea {
+            appearance: none; background-color: var(--bg-input); border: 1px solid var(--border-color);
+            border-radius: 6px; color: var(--text-primary); padding: 0.5rem 0.75rem; font-size: 0.875rem;
+        }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); }
+
+        .theme-toggle {
+            position: fixed; top: 20px; right: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <button class="btn btn--secondary theme-toggle" onclick="document.documentElement.setAttribute('data-theme', document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark')">
+        Переключить тему
+    </button>
+
+    <h1>Дизайн-система (AI Analytics)</h1>
+    <p style="color: var(--text-muted); font-size: 1.1rem; margin-bottom: 40px;">Единый источник истины для визуального языка и компонентов приложения.</p>
+
+    <!-- SECTION 1: PALETTE -->
+    <div class="section">
+        <h2>1. Палитра и Токены (Tokens)</h2>
+        <h3>Фон и Карточки</h3>
+        <div class="palette-grid" style="margin-bottom: 20px;">
+            <div class="color-card"><div class="color-swatch" style="background: var(--bg-main);"></div><div class="color-info"><strong>--bg-main</strong><span>Основной фон</span></div></div>
+            <div class="color-card"><div class="color-swatch" style="background: var(--bg-secondary);"></div><div class="color-info"><strong>--bg-secondary</strong><span>Фон боковой панели</span></div></div>
+            <div class="color-card"><div class="color-swatch" style="background: var(--bg-card);"></div><div class="color-info"><strong>--bg-card</strong><span>Карточки/Инпуты</span></div></div>
+        </div>
+
+        <h3>Акценты и Текст</h3>
+        <div class="palette-grid">
+            <div class="color-card"><div class="color-swatch" style="background: var(--text-primary);"></div><div class="color-info"><strong>--text-primary</strong><span style="color:var(--text-primary)">Текст</span></div></div>
+            <div class="color-card"><div class="color-swatch" style="background: var(--accent);"></div><div class="color-info"><strong>--accent</strong><span>Акцентный (зеленый)</span></div></div>
+            <div class="color-card"><div class="color-swatch" style="background: var(--danger);"></div><div class="color-info"><strong>--danger</strong><span>Опасность (красный)</span></div></div>
+        </div>
+    </div>
+
+    <!-- SECTION 2: BUTTONS -->
+    <div class="section">
+        <h2>2. Кнопки (Buttons)</h2>
+        <p style="color: var(--text-muted); margin-bottom: 20px;">Основаны на методологии BEM (<code>.btn .btn--primary</code>).</p>
+
+        <h3>Иерархия</h3>
+        <div class="component-row">
+            <button class="btn btn--primary">Primary (Главное действие)</button>
+            <button class="btn btn--secondary">Secondary (Второстепенное)</button>
+            <button class="btn btn--tertiary">Tertiary (Без фона)</button>
+        </div>
+
+        <h3>Контекстные стили</h3>
+        <div class="component-row">
+            <button class="btn btn--success">Success (Сохранено)</button>
+            <button class="btn btn--alert">Alert (Удалить / Сброс)</button>
+        </div>
+
+        <h3>Состояния</h3>
+        <div class="component-row">
+            <button class="btn btn--primary" disabled>Primary Disabled</button>
+            <button class="btn btn--secondary" disabled>Secondary Disabled</button>
+            <button class="btn btn--alert" disabled>Alert Disabled</button>
+        </div>
+
+        <h3>Размеры (Modifiers)</h3>
+        <div class="component-row">
+            <button class="btn btn--primary btn--sm">Small (.btn--sm)</button>
+            <button class="btn btn--primary">Default</button>
+            <button class="btn btn--primary btn--lg">Large (.btn--lg)</button>
+            <button class="btn btn--secondary btn--icon">⚙️</button>
+        </div>
+    </div>
+
+    <!-- SECTION 3: FORMS -->
+    <div class="section">
+        <h2>3. Элементы форм (Inputs)</h2>
+        <div style="display: flex; flex-direction: column; gap: 15px; max-width: 400px;">
+            <input type="text" placeholder="Текстовое поле...">
+            <select>
+                <option>Опция 1</option>
+                <option>Опция 2</option>
+            </select>
+            <textarea rows="3" placeholder="Многострочный текст..."></textarea>
+            <label style="display: flex; align-items: center; gap: 8px;">
+                <input type="checkbox" checked> Чекбокс
+            </label>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>
