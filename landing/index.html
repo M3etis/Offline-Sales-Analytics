@@ -1,0 +1,1685 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Offline Sales Analytics — локальная аналитика продаж с ИИ</title>
+  <meta name="description" content="Offline Sales Analytics — платформа аналитики продаж с локальным ИИ. Данные не покидают ваш компьютер: NL→SQL, голос, дашборды, мультитабличные запросы." />
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #080712;
+      --bg-soft: #0d0c1c;
+      --card: rgba(255, 255, 255, 0.045);
+      --card-hover: rgba(255, 255, 255, 0.08);
+      --text: #f4f2ff;
+      --muted: #9b96b8;
+      --violet: #a78bfa;
+      --violet-hot: #863bff;
+      --violet-deep: #6d28d9;
+      --cyan: #4fc3f7;
+      --cyan-soft: #7dd3fc;
+      --mint: #5eead4;
+      --amber: #fbbf24;
+      --rose: #fb7185;
+      --border: rgba(255, 255, 255, 0.1);
+      --border-hot: rgba(167, 139, 250, 0.35);
+      --glow: rgba(134, 59, 255, 0.4);
+      --radius: 18px;
+      --max: 1100px;
+      --font: "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+      --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--cyan); text-decoration: none; }
+    a:hover { color: var(--violet); }
+    img { max-width: 100%; display: block; }
+
+    /* ——— scroll progress ——— */
+    .progress {
+      position: fixed;
+      top: 0; left: 0;
+      height: 2px;
+      width: 0%;
+      z-index: 100;
+      background: linear-gradient(90deg, var(--violet-hot), var(--cyan), var(--mint));
+      box-shadow: 0 0 12px var(--glow);
+      pointer-events: none;
+    }
+
+    /* ——— animated background ——— */
+    .bg-layer {
+      position: fixed;
+      inset: 0;
+      z-index: -2;
+      overflow: hidden;
+      background:
+        radial-gradient(1100px 680px at 12% -12%, rgba(134, 59, 255, 0.18), transparent 55%),
+        radial-gradient(900px 560px at 88% 8%, rgba(79, 195, 247, 0.14), transparent 50%),
+        radial-gradient(760px 480px at 50% 100%, rgba(94, 234, 212, 0.1), transparent 55%),
+        linear-gradient(180deg, #080712 0%, #0c0b1c 45%, #080712 100%);
+    }
+
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(72px);
+      opacity: 0.55;
+      will-change: transform;
+    }
+    .orb-1 {
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(134, 59, 255, 0.6), transparent 70%);
+      top: -130px; left: -90px;
+      animation: float-a 18s ease-in-out infinite;
+    }
+    .orb-2 {
+      width: 540px; height: 540px;
+      background: radial-gradient(circle, rgba(79, 195, 247, 0.5), transparent 70%);
+      top: 8%; right: -170px;
+      animation: float-b 22s ease-in-out infinite;
+    }
+    .orb-3 {
+      width: 440px; height: 440px;
+      background: radial-gradient(circle, rgba(94, 234, 212, 0.42), transparent 70%);
+      bottom: -110px; left: 28%;
+      animation: float-c 20s ease-in-out infinite;
+    }
+
+    @keyframes float-a {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(70px, 44px) scale(1.1); }
+    }
+    @keyframes float-b {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(-56px, 54px) scale(1.12); }
+    }
+    @keyframes float-c {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(48px, -52px) scale(1.08); }
+    }
+
+    .grid-lines {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+      background-size: 56px 56px;
+      mask-image: radial-gradient(ellipse at center, #000 28%, transparent 76%);
+      animation: grid-drift 28s linear infinite;
+    }
+    @keyframes grid-drift {
+      from { background-position: 0 0, 0 0; }
+      to { background-position: 56px 56px, 56px 56px; }
+    }
+
+    #particles {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .noise {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      opacity: 0.045;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+
+    /* ——— layout ——— */
+    .wrap {
+      position: relative;
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 72px 24px 96px;
+    }
+
+    /* ——— nav ——— */
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 56px;
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: rgba(12, 11, 28, 0.58);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.28);
+      animation: drop-in 0.7s ease both;
+      transition: transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s;
+    }
+    .nav.scrolled {
+      box-shadow: 0 14px 50px rgba(0, 0, 0, 0.4), 0 0 30px rgba(134, 59, 255, 0.08);
+      border-color: rgba(167, 139, 250, 0.22);
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text);
+    }
+    .brand-badge {
+      width: 30px;
+      height: 30px;
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(145deg, rgba(134, 59, 255, 0.35), rgba(79, 195, 247, 0.22));
+      border: 1px solid rgba(167, 139, 250, 0.4);
+      box-shadow: 0 0 18px var(--glow);
+      animation: badge-pulse 2.8s ease-in-out infinite;
+      overflow: hidden;
+    }
+    @keyframes badge-pulse {
+      0%, 100% { box-shadow: 0 0 16px var(--glow); }
+      50% { box-shadow: 0 0 28px var(--glow), 0 0 42px rgba(79, 195, 247, 0.22); }
+    }
+    .brand-badge img { width: 20px; height: 20px; object-fit: contain; }
+    .nav-links {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+    .nav-links a {
+      color: var(--muted);
+      font-size: 0.86rem;
+      font-weight: 500;
+      padding: 6px 11px;
+      border-radius: 999px;
+      transition: color 0.2s, background 0.2s, transform 0.2s;
+    }
+    .nav-links a:hover {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.06);
+      transform: translateY(-1px);
+    }
+
+    /* ——— hero ——— */
+    .hero {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 13px;
+      border-radius: 999px;
+      border: 1px solid rgba(167, 139, 250, 0.32);
+      background: rgba(134, 59, 255, 0.1);
+      color: var(--violet);
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 18px;
+      animation: rise-in 0.7s ease both 0.05s;
+    }
+    .pill .dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--mint);
+      box-shadow: 0 0 10px var(--mint);
+      animation: blink 1.8s ease-in-out infinite;
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.35; }
+    }
+
+    h1 {
+      margin: 0 0 14px;
+      font-size: clamp(2.55rem, 6vw, 4.15rem);
+      letter-spacing: -0.042em;
+      line-height: 1.05;
+      font-weight: 800;
+      animation: rise-in 0.75s ease both 0.1s;
+    }
+    .gradient-text {
+      background: linear-gradient(100deg, var(--violet-hot) 0%, var(--cyan) 48%, var(--mint) 100%);
+      background-size: 200% 200%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      animation: gradient-shift 6s ease infinite;
+    }
+    @keyframes gradient-shift {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+
+    .tagline {
+      color: var(--muted);
+      font-size: clamp(1.05rem, 2vw, 1.24rem);
+      max-width: 680px;
+      margin: 0 auto 28px;
+      animation: rise-in 0.75s ease both 0.18s;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+      margin-bottom: 42px;
+      animation: rise-in 0.75s ease both 0.26s;
+    }
+
+    .btn {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 22px;
+      border-radius: 14px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      text-decoration: none;
+      border: 1px solid transparent;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.25s, background 0.25s, color 0.25s;
+    }
+    .btn::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(120deg, transparent 20%, rgba(255, 255, 255, 0.28) 50%, transparent 80%);
+      transform: translateX(-120%);
+      transition: transform 0.6s ease;
+    }
+    .btn:hover::after { transform: translateX(120%); }
+    .btn:hover {
+      transform: translateY(-2px);
+      text-decoration: none;
+    }
+    .btn:active { transform: translateY(0) scale(0.98); }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--violet-hot) 0%, var(--violet-deep) 100%);
+      color: #fff;
+      box-shadow: 0 10px 32px rgba(134, 59, 255, 0.4);
+    }
+    .btn-primary:hover {
+      color: #fff;
+      box-shadow: 0 14px 42px rgba(134, 59, 255, 0.55);
+    }
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text);
+      border-color: var(--border);
+      backdrop-filter: blur(10px);
+    }
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text);
+    }
+
+    /* ——— stats strip ——— */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin: 0 auto 64px;
+      max-width: 920px;
+      animation: rise-in 0.8s ease both 0.32s;
+    }
+    .stat {
+      text-align: center;
+      padding: 18px 12px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.03);
+      transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s;
+    }
+    .stat:hover {
+      transform: translateY(-4px);
+      border-color: var(--border-hot);
+      box-shadow: 0 14px 36px rgba(0, 0, 0, 0.28);
+    }
+    .stat-value {
+      display: block;
+      font-size: 1.55rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      background: linear-gradient(120deg, var(--violet), var(--cyan));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .stat-label {
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    /* ——— product shot / mock ——— */
+    .shot-wrap {
+      position: relative;
+      margin: 0 auto 80px;
+      max-width: 960px;
+      animation: rise-in 0.9s ease both 0.35s;
+      perspective: 1400px;
+    }
+    .shot-glow {
+      position: absolute;
+      inset: 6% 8% -6%;
+      background: radial-gradient(ellipse, rgba(134, 59, 255, 0.4), rgba(79, 195, 247, 0.18) 45%, transparent 70%);
+      filter: blur(34px);
+      z-index: 0;
+      animation: pulse-glow 4s ease-in-out infinite;
+    }
+    .shot-frame {
+      position: relative;
+      z-index: 1;
+      border-radius: 22px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      box-shadow:
+        0 30px 80px rgba(0, 0, 0, 0.55),
+        0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+      transform: rotateX(5deg) rotateY(-2deg);
+      animation: float-shot 7s ease-in-out infinite;
+      transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.45s ease;
+      background: #12101f;
+    }
+    .shot-frame:hover {
+      transform: rotateX(0deg) rotateY(0deg) translateY(-8px) scale(1.012);
+      box-shadow:
+        0 42px 100px rgba(0, 0, 0, 0.62),
+        0 0 70px rgba(134, 59, 255, 0.16);
+    }
+    .shot-chrome {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 12px 16px;
+      background: rgba(18, 16, 32, 0.95);
+      border-bottom: 1px solid var(--border);
+    }
+    .shot-chrome i {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      display: block;
+    }
+    .shot-chrome i:nth-child(1) { background: #ff5f57; }
+    .shot-chrome i:nth-child(2) { background: #febc2e; }
+    .shot-chrome i:nth-child(3) { background: #28c840; }
+    .shot-chrome .tab {
+      margin-left: 12px;
+      font-size: 0.72rem;
+      color: var(--muted);
+      font-family: var(--mono);
+    }
+
+    @keyframes float-shot {
+      0%, 100% { transform: rotateX(5deg) rotateY(-2deg) translateY(0); }
+      50% { transform: rotateX(2.5deg) rotateY(1deg) translateY(-12px); }
+    }
+    @keyframes pulse-glow {
+      0%, 100% { opacity: 0.55; filter: blur(30px); }
+      50% { opacity: 0.95; filter: blur(42px); }
+    }
+
+    /* mock app UI */
+    .mock {
+      display: grid;
+      grid-template-columns: 180px 1fr 240px;
+      min-height: 420px;
+      background:
+        radial-gradient(600px 300px at 80% 0%, rgba(134, 59, 255, 0.12), transparent 60%),
+        linear-gradient(180deg, #12101f 0%, #0e0d1a 100%);
+    }
+    .mock-side {
+      border-right: 1px solid var(--border);
+      padding: 18px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .mock-brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: var(--text);
+    }
+    .mock-brand span {
+      width: 22px; height: 22px;
+      border-radius: 7px;
+      background: linear-gradient(135deg, var(--violet-hot), var(--cyan));
+      display: grid;
+      place-items: center;
+    }
+    .mock-brand span img { width: 12px; height: 12px; }
+    .mock-nav-item {
+      padding: 8px 10px;
+      border-radius: 10px;
+      font-size: 0.74rem;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .mock-nav-item.active {
+      background: rgba(134, 59, 255, 0.16);
+      color: var(--text);
+      border: 1px solid rgba(167, 139, 250, 0.25);
+    }
+    .mock-nav-item .ico {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--violet);
+    }
+    .mock-main { padding: 18px 16px; display: flex; flex-direction: column; gap: 12px; }
+    .mock-kpis {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    .mock-kpi {
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.03);
+    }
+    .mock-kpi small {
+      display: block;
+      color: var(--muted);
+      font-size: 0.65rem;
+      margin-bottom: 4px;
+    }
+    .mock-kpi strong {
+      font-size: 1.05rem;
+      letter-spacing: -0.02em;
+    }
+    .mock-kpi em {
+      font-style: normal;
+      font-size: 0.68rem;
+      color: var(--mint);
+      margin-left: 6px;
+    }
+    .mock-chart {
+      flex: 1;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.025);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-height: 180px;
+    }
+    .mock-chart-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+    .bars {
+      flex: 1;
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      padding-top: 8px;
+    }
+    .bar {
+      flex: 1;
+      border-radius: 6px 6px 2px 2px;
+      background: linear-gradient(180deg, var(--violet-hot), rgba(79, 195, 247, 0.35));
+      transform-origin: bottom;
+      animation: bar-grow 1.4s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+      box-shadow: 0 0 16px rgba(134, 59, 255, 0.25);
+    }
+    .bar:nth-child(1) { height: 42%; animation-delay: 0.1s; }
+    .bar:nth-child(2) { height: 68%; animation-delay: 0.18s; }
+    .bar:nth-child(3) { height: 55%; animation-delay: 0.26s; }
+    .bar:nth-child(4) { height: 88%; animation-delay: 0.34s; }
+    .bar:nth-child(5) { height: 62%; animation-delay: 0.42s; }
+    .bar:nth-child(6) { height: 76%; animation-delay: 0.5s; }
+    .bar:nth-child(7) { height: 48%; animation-delay: 0.58s; }
+    .bar:nth-child(8) { height: 92%; animation-delay: 0.66s; }
+    .bar:nth-child(9) { height: 70%; animation-delay: 0.74s; }
+    .bar:nth-child(10) { height: 58%; animation-delay: 0.82s; }
+    @keyframes bar-grow {
+      from { transform: scaleY(0.15); opacity: 0.3; }
+      to { transform: scaleY(1); opacity: 1; }
+    }
+
+    .mock-chat {
+      border-left: 1px solid var(--border);
+      padding: 16px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      background: rgba(0, 0, 0, 0.12);
+    }
+    .mock-chat-title {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+    }
+    .bubble {
+      padding: 10px 12px;
+      border-radius: 12px;
+      font-size: 0.72rem;
+      line-height: 1.45;
+      max-width: 100%;
+    }
+    .bubble.user {
+      background: rgba(134, 59, 255, 0.18);
+      border: 1px solid rgba(167, 139, 250, 0.28);
+      align-self: flex-end;
+      color: var(--text);
+    }
+    .bubble.ai {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+    .bubble.ai strong { color: var(--cyan); font-weight: 600; }
+    .typing {
+      display: inline-flex;
+      gap: 4px;
+      padding: 4px 0;
+    }
+    .typing span {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--violet);
+      animation: typing-bounce 1.2s ease-in-out infinite;
+    }
+    .typing span:nth-child(2) { animation-delay: 0.15s; }
+    .typing span:nth-child(3) { animation-delay: 0.3s; }
+    @keyframes typing-bounce {
+      0%, 100% { opacity: 0.35; transform: translateY(0); }
+      50% { opacity: 1; transform: translateY(-3px); }
+    }
+
+    /* ——— marquee ——— */
+    .marquee-wrap {
+      margin: 0 0 72px;
+      overflow: hidden;
+      mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+      -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+    }
+    .marquee {
+      display: flex;
+      gap: 12px;
+      width: max-content;
+      animation: marquee 32s linear infinite;
+    }
+    .marquee:hover { animation-play-state: paused; }
+    .chip {
+      flex-shrink: 0;
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.035);
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 500;
+      font-family: var(--mono);
+      letter-spacing: -0.01em;
+    }
+    .chip em {
+      font-style: normal;
+      color: var(--violet);
+      margin-right: 6px;
+    }
+    @keyframes marquee {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+
+    /* ——— sections ——— */
+    section { margin-bottom: 76px; }
+
+    .section-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 22px;
+      flex-wrap: wrap;
+    }
+    h2 {
+      margin: 0;
+      font-size: 1.75rem;
+      letter-spacing: -0.03em;
+      font-weight: 750;
+      position: relative;
+      display: inline-block;
+    }
+    h2::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      bottom: -8px;
+      height: 2px;
+      width: 0;
+      border-radius: 2px;
+      background: linear-gradient(90deg, var(--violet-hot), var(--cyan));
+      transition: width 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    .is-visible h2::after,
+    h2.is-visible::after { width: 56px; }
+    .section-sub {
+      color: var(--muted);
+      margin: 0;
+      font-size: 0.95rem;
+    }
+
+    /* ——— cards ——— */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(255px, 1fr));
+      gap: 16px;
+    }
+    .card {
+      position: relative;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 20px 18px;
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      overflow: hidden;
+      transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), background 0.3s, border-color 0.3s, box-shadow 0.3s;
+    }
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%), rgba(134, 59, 255, 0.18), transparent 42%);
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+    }
+    .card:hover {
+      transform: translateY(-6px);
+      background: var(--card-hover);
+      border-color: rgba(167, 139, 250, 0.32);
+      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35), 0 0 32px rgba(134, 59, 255, 0.1);
+    }
+    .card:hover::before { opacity: 1; }
+
+    .card h3 {
+      margin: 0 0 8px;
+      font-size: 1.02rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      letter-spacing: -0.01em;
+    }
+    .card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    .dot {
+      width: 9px; height: 9px;
+      border-radius: 50%;
+      display: inline-block;
+      flex-shrink: 0;
+      box-shadow: 0 0 10px currentColor;
+    }
+    .dot.v { background: var(--violet); color: var(--violet); }
+    .dot.c { background: var(--cyan); color: var(--cyan); }
+    .dot.m { background: var(--mint); color: var(--mint); }
+    .dot.a { background: var(--amber); color: var(--amber); }
+    .dot.r { background: var(--rose); color: var(--rose); }
+    .dot.g { background: var(--muted); color: var(--muted); box-shadow: none; }
+
+    /* ——— pipeline ——— */
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      position: relative;
+    }
+    .step {
+      position: relative;
+      padding: 22px 20px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: linear-gradient(160deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+      transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s;
+    }
+    .step:hover {
+      transform: translateY(-5px);
+      border-color: rgba(79, 195, 247, 0.38);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.3);
+    }
+    .step-num {
+      width: 34px; height: 34px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      font-size: 0.95rem;
+      margin-bottom: 12px;
+      color: #fff;
+      background: linear-gradient(135deg, var(--violet-hot), var(--cyan));
+      box-shadow: 0 8px 20px rgba(134, 59, 255, 0.3);
+    }
+    .step h3 { margin: 0 0 6px; font-size: 1rem; }
+    .step p { margin: 0; color: var(--muted); font-size: 0.9rem; }
+
+    code {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border);
+      padding: 2px 8px;
+      border-radius: 8px;
+      font-size: 0.86em;
+      font-family: var(--mono);
+      color: var(--cyan-soft);
+    }
+
+    /* ——— privacy banner ——— */
+    .privacy {
+      position: relative;
+      border-radius: 22px;
+      border: 1px solid rgba(167, 139, 250, 0.28);
+      padding: 36px 32px;
+      overflow: hidden;
+      background:
+        radial-gradient(500px 240px at 10% 20%, rgba(134, 59, 255, 0.22), transparent 60%),
+        radial-gradient(420px 220px at 90% 80%, rgba(79, 195, 247, 0.14), transparent 55%),
+        rgba(255, 255, 255, 0.03);
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 28px;
+      align-items: center;
+    }
+    .privacy h2 { margin-bottom: 12px; }
+    .privacy p {
+      color: var(--muted);
+      margin: 0 0 18px;
+      font-size: 1.02rem;
+    }
+    .shield {
+      width: min(220px, 100%);
+      margin: 0 auto;
+      aspect-ratio: 1;
+      position: relative;
+      display: grid;
+      place-items: center;
+    }
+    .shield-ring {
+      position: absolute;
+      inset: 10%;
+      border-radius: 50%;
+      border: 1px dashed rgba(167, 139, 250, 0.35);
+      animation: spin 24s linear infinite;
+    }
+    .shield-ring:nth-child(2) {
+      inset: 22%;
+      border-style: solid;
+      border-color: rgba(79, 195, 247, 0.28);
+      animation-direction: reverse;
+      animation-duration: 18s;
+    }
+    .shield-core {
+      width: 88px;
+      height: 88px;
+      border-radius: 28px;
+      background: linear-gradient(145deg, rgba(134, 59, 255, 0.45), rgba(79, 195, 247, 0.28));
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      display: grid;
+      place-items: center;
+      box-shadow: 0 0 50px rgba(134, 59, 255, 0.35);
+      animation: float-core 5s ease-in-out infinite;
+    }
+    .shield-core svg { width: 42px; height: 42px; }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    @keyframes float-core {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-8px) scale(1.04); }
+    }
+    .check-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 10px;
+    }
+    .check-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+    .check-list li::before {
+      content: "";
+      width: 18px; height: 18px;
+      flex-shrink: 0;
+      margin-top: 2px;
+      border-radius: 50%;
+      background:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%235eead4' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 8.5l3 3 7-7'/%3E%3C/svg%3E") center/12px no-repeat,
+        rgba(94, 234, 212, 0.12);
+      border: 1px solid rgba(94, 234, 212, 0.28);
+    }
+
+    /* ——— models table ——— */
+    .table-shell {
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(12px);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+    }
+    th, td {
+      padding: 14px 16px;
+      text-align: left;
+      vertical-align: top;
+      border-bottom: 1px solid var(--border);
+    }
+    tr:last-child td { border-bottom: 0; }
+    th {
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text);
+      font-weight: 650;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    td { color: var(--muted); }
+    td:first-child {
+      color: var(--text);
+      font-weight: 600;
+      font-family: var(--mono);
+      font-size: 0.86rem;
+    }
+    tbody tr { transition: background 0.2s; }
+    tbody tr:hover { background: rgba(134, 59, 255, 0.06); }
+
+    .badge {
+      display: inline-flex;
+      padding: 2px 8px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.75rem;
+      letter-spacing: 0.03em;
+    }
+    .badge.rec {
+      color: var(--mint);
+      background: rgba(94, 234, 212, 0.12);
+      border: 1px solid rgba(94, 234, 212, 0.3);
+    }
+    .badge.base {
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+    }
+
+    /* ——— install ——— */
+    .terminal {
+      margin-top: 18px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: #0b0a16;
+      overflow: hidden;
+      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+    }
+    .terminal-bar {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 10px 14px;
+      background: rgba(255, 255, 255, 0.04);
+      border-bottom: 1px solid var(--border);
+    }
+    .terminal-bar i {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+    }
+    .terminal-bar i:nth-child(1) { background: #ff5f57; }
+    .terminal-bar i:nth-child(2) { background: #febc2e; }
+    .terminal-bar i:nth-child(3) { background: #28c840; }
+    .terminal-bar span {
+      margin-left: 8px;
+      color: var(--muted);
+      font-size: 0.72rem;
+      font-family: var(--mono);
+    }
+    .terminal pre {
+      margin: 0;
+      padding: 18px 16px;
+      overflow-x: auto;
+      font-family: var(--mono);
+      font-size: 0.84rem;
+      line-height: 1.7;
+      color: var(--muted);
+    }
+    .terminal pre .cmd { color: var(--mint); }
+    .terminal pre .cmt { color: #6b6588; }
+    .terminal .cursor {
+      display: inline-block;
+      width: 8px;
+      height: 1.05em;
+      background: var(--violet);
+      vertical-align: text-bottom;
+      margin-left: 2px;
+      animation: blink 1s step-end infinite;
+    }
+
+    /* ——— cta band ——— */
+    .cta-band {
+      text-align: center;
+      padding: 48px 24px;
+      border-radius: 24px;
+      border: 1px solid var(--border-hot);
+      background:
+        radial-gradient(500px 220px at 50% 0%, rgba(134, 59, 255, 0.22), transparent 70%),
+        rgba(255, 255, 255, 0.03);
+      position: relative;
+      overflow: hidden;
+    }
+    .cta-band h2 { margin-bottom: 12px; }
+    .cta-band h2::after { left: 50%; transform: translateX(-50%); }
+    .cta-band .is-visible h2::after,
+    .cta-band h2.is-visible::after { width: 64px; }
+    .cta-band p {
+      color: var(--muted);
+      max-width: 520px;
+      margin: 0 auto 22px;
+    }
+
+    /* ——— footer ——— */
+    footer {
+      margin-top: 24px;
+      padding-top: 28px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    /* ——— motion helpers ——— */
+    .reveal {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    .reveal.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @keyframes rise-in {
+      from { opacity: 0; transform: translateY(24px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes drop-in {
+      from { opacity: 0; transform: translateY(-16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ——— responsive ——— */
+    @media (max-width: 900px) {
+      .mock { grid-template-columns: 1fr; }
+      .mock-side, .mock-chat { display: none; }
+      .privacy { grid-template-columns: 1fr; }
+      .stats { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 720px) {
+      .wrap { padding: 28px 16px 64px; }
+      .nav { border-radius: 18px; flex-direction: column; align-items: stretch; }
+      .nav-links { justify-content: center; }
+      .shot-frame { transform: none; animation: none; }
+      .shot-frame:hover { transform: none; }
+      .stats { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+      .reveal { opacity: 1; transform: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="progress" id="progress" aria-hidden="true"></div>
+
+  <div class="bg-layer" aria-hidden="true">
+    <div class="grid-lines"></div>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+    <canvas id="particles"></canvas>
+  </div>
+  <div class="noise" aria-hidden="true"></div>
+
+  <div class="wrap">
+    <nav class="nav" id="nav">
+      <a class="brand" href="#">
+        <span class="brand-badge" aria-hidden="true">
+          <img src="assets/favicon.svg" alt="" />
+        </span>
+        Offline Sales Analytics
+      </a>
+      <div class="nav-links">
+        <a href="#features">Возможности</a>
+        <a href="#how">Как это работает</a>
+        <a href="#privacy">Приватность</a>
+        <a href="#install">Установка</a>
+        <a href="#models">Модели</a>
+        <a href="https://github.com/M3etis/Offline-Sales-Analytics" target="_blank" rel="noopener noreferrer">GitHub</a>
+      </div>
+    </nav>
+
+    <header class="hero">
+      <div class="pill"><span class="dot"></span> локальный ИИ · данные не уходят в облако</div>
+      <h1>Аналитика продаж<br /><span class="gradient-text">с локальным ИИ</span></h1>
+      <p class="tagline">
+        Задавайте вопросы на естественном языке — платформа сама строит SQL, графики и KPI.
+        LLM, голос и данные работают целиком на вашем компьютере.
+      </p>
+      <div class="actions">
+        <a class="btn btn-primary magnetic" href="https://github.com/M3etis/Offline-Sales-Analytics/releases/latest" target="_blank" rel="noopener noreferrer">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m7 11 5 5 5-5"/><path d="M5 21h14"/></svg>
+          Скачать DMG
+        </a>
+        <a class="btn btn-secondary magnetic" href="https://github.com/M3etis/Offline-Sales-Analytics" target="_blank" rel="noopener noreferrer">View on GitHub</a>
+      </div>
+    </header>
+
+    <div class="stats" aria-label="Ключевые показатели">
+      <div class="stat">
+        <span class="stat-value" data-count="100" data-suffix="%">0%</span>
+        <span class="stat-label">оффлайн-работа</span>
+      </div>
+      <div class="stat">
+        <span class="stat-value" data-count="350" data-suffix="+">0+</span>
+        <span class="stat-label">записей словаря EN↔RU</span>
+      </div>
+      <div class="stat">
+        <span class="stat-value" data-count="4" data-suffix="">0</span>
+        <span class="stat-label">формата импорта</span>
+      </div>
+      <div class="stat">
+        <span class="stat-value" data-count="0" data-suffix="">0</span>
+        <span class="stat-label">отправок в облако</span>
+      </div>
+    </div>
+
+    <div class="shot-wrap" id="shot">
+      <div class="shot-glow"></div>
+      <div class="shot-frame" id="shotFrame">
+        <div class="shot-chrome" aria-hidden="true">
+          <i></i><i></i><i></i>
+          <span class="tab">localhost:5173 · Dashboard</span>
+        </div>
+        <div class="mock" aria-label="Интерфейс Offline Sales Analytics">
+          <aside class="mock-side">
+            <div class="mock-brand">
+              <span><img src="assets/favicon.svg" alt="" /></span>
+              OSA
+            </div>
+            <div class="mock-nav-item active"><span class="ico"></span>Дашборд</div>
+            <div class="mock-nav-item"><span class="ico"></span>Ассистент</div>
+            <div class="mock-nav-item"><span class="ico"></span>Данные</div>
+            <div class="mock-nav-item"><span class="ico"></span>Сессии</div>
+            <div class="mock-nav-item"><span class="ico"></span>Настройки</div>
+          </aside>
+          <div class="mock-main">
+            <div class="mock-kpis">
+              <div class="mock-kpi"><small>Выручка</small><strong>₽ 12.4M</strong><em>↑ 12%</em></div>
+              <div class="mock-kpi"><small>Заказы</small><strong>8 421</strong><em>↑ 6%</em></div>
+              <div class="mock-kpi"><small>Средний чек</small><strong>₽ 1 472</strong><em>↑ 3%</em></div>
+            </div>
+            <div class="mock-chart">
+              <div class="mock-chart-head">
+                <span>Динамика продаж</span>
+                <span>12 мес</span>
+              </div>
+              <div class="bars" aria-hidden="true">
+                <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+                <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+                <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+                <div class="bar"></div>
+              </div>
+            </div>
+          </div>
+          <aside class="mock-chat">
+            <div class="mock-chat-title">Ассистент</div>
+            <div class="bubble user" id="userBubble">Топ-5 категорий по выручке за квартал</div>
+            <div class="bubble ai">
+              <strong>SQL сгенерирован</strong><br />
+              SELECT category, SUM(revenue) …<br />
+              GROUP BY category ORDER BY 2 DESC LIMIT 5
+              <div class="typing" aria-hidden="true"><span></span><span></span><span></span></div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </div>
+
+    <div class="marquee-wrap" aria-hidden="true">
+      <div class="marquee">
+        <div class="chip"><em>◆</em>FastAPI</div>
+        <div class="chip"><em>◆</em>React</div>
+        <div class="chip"><em>◆</em>DuckDB</div>
+        <div class="chip"><em>◆</em>Ollama</div>
+        <div class="chip"><em>◆</em>qwen2.5</div>
+        <div class="chip"><em>◆</em>Whisper</div>
+        <div class="chip"><em>◆</em>Edge TTS</div>
+        <div class="chip"><em>◆</em>Electron</div>
+        <div class="chip"><em>◆</em>WebSocket</div>
+        <div class="chip"><em>◆</em>JWT / RBAC</div>
+        <div class="chip"><em>◆</em>CSV / XLSX</div>
+        <div class="chip"><em>◆</em>DOCX Export</div>
+        <div class="chip"><em>◆</em>FastAPI</div>
+        <div class="chip"><em>◆</em>React</div>
+        <div class="chip"><em>◆</em>DuckDB</div>
+        <div class="chip"><em>◆</em>Ollama</div>
+        <div class="chip"><em>◆</em>qwen2.5</div>
+        <div class="chip"><em>◆</em>Whisper</div>
+        <div class="chip"><em>◆</em>Edge TTS</div>
+        <div class="chip"><em>◆</em>Electron</div>
+        <div class="chip"><em>◆</em>WebSocket</div>
+        <div class="chip"><em>◆</em>JWT / RBAC</div>
+        <div class="chip"><em>◆</em>CSV / XLSX</div>
+        <div class="chip"><em>◆</em>DOCX Export</div>
+      </div>
+    </div>
+
+    <section id="features">
+      <div class="section-head reveal">
+        <h2>Возможности</h2>
+        <p class="section-sub">Всё, что нужно аналитику — без SQL-курсов и без облака.</p>
+      </div>
+      <div class="grid">
+        <article class="card reveal">
+          <h3><span class="dot v"></span>Вопрос → SQL → ответ</h3>
+          <p>LLM сам пишет SQL по естественному языку. Автоисправление галлюцинаций колонок, forward references и паттернов MAX/MIN.</p>
+        </article>
+        <article class="card reveal">
+          <h3><span class="dot v"></span>Мультитабличные запросы</h3>
+          <p>Автоматическое определение связей между таблицами и генерация JOIN — от простых срезов до сложных аналитических разрезов.</p>
+        </article>
+        <article class="card reveal">
+          <h3><span class="dot c"></span>Голосовой интерфейс</h3>
+          <p>Спрашивайте голосом и слушайте ответ: Whisper для распознавания, Edge TTS для озвучки. Всё локально.</p>
+        </article>
+        <article class="card reveal">
+          <h3><span class="dot c"></span>Интерактивные дашборды</h3>
+          <p>KPI-карточки с трендами, графики динамики, распределения — и в чате, и на дашборде. Экспорт диалога в DOCX.</p>
+        </article>
+        <article class="card reveal">
+          <h3><span class="dot m"></span>Гибкий импорт</h3>
+          <p>CSV, XLSX, DuckDB/SQLite и URL. Демо-данные в один клик, drag&amp;drop с предпросмотром и автоопределением типов.</p>
+        </article>
+        <article class="card reveal">
+          <h3><span class="dot m"></span>Инструкции ИИ</h3>
+          <p>Настраивайте правила, рекомендации и контекст ассистента через UI — без правки промптов в коде.</p>
+        </article>
+        <article class="card reveal">
+          <h3><span class="dot a"></span>RBAC и безопасность</h3>
+          <p>Роли Admin/User, JWT, rate-limiting, безопасный SQL (только SELECT/WITH), bcrypt и гранулярные права.</p>
+        </article>
+        <article class="card reveal">
+          <h3><span class="dot g"></span>Скорость</h3>
+          <p>Многоуровневый кеш LLM и схем, предвычисленные манифесты колонок, стриминг ответов по WebSocket.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="how">
+      <div class="section-head reveal">
+        <h2>Как это работает</h2>
+        <p class="section-sub">От файла до ответа — четыре шага, всё на вашей машине.</p>
+      </div>
+      <div class="steps">
+        <div class="step reveal">
+          <div class="step-num">1</div>
+          <h3>Загрузите данные</h3>
+          <p>CSV, XLSX или база. Платформа профилирует колонки и строит манифест схемы.</p>
+        </div>
+        <div class="step reveal">
+          <div class="step-num">2</div>
+          <h3>Задайте вопрос</h3>
+          <p>Текстом или голосом: «выручка по регионам за март», «топ менеджеров», «аномалии продаж».</p>
+        </div>
+        <div class="step reveal">
+          <div class="step-num">3</div>
+          <h3>ИИ строит SQL</h3>
+          <p>Локальная LLM генерирует запрос, валидирует его и сама чинит типичные ошибки.</p>
+        </div>
+        <div class="step reveal">
+          <div class="step-num">4</div>
+          <h3>Получите инсайт</h3>
+          <p>Таблица, график, KPI и саммари — сразу в чате. История сохраняется в сессиях.</p>
+        </div>
+      </div>
+
+      <div class="terminal reveal" aria-label="Пример запуска">
+        <div class="terminal-bar">
+          <i></i><i></i><i></i>
+          <span>Terminal — Offline Sales Analytics</span>
+        </div>
+        <pre><span class="cmt"># macOS / Linux</span>
+<span class="cmd">git clone</span> &lt;url&gt; sales-analytics
+<span class="cmd">cd</span> sales-analytics
+<span class="cmd">chmod +x</span> start.sh
+<span class="cmd">./start.sh</span><span class="cursor"></span></pre>
+      </div>
+    </section>
+
+    <section id="privacy">
+      <div class="privacy reveal">
+        <div>
+          <h2>Данные остаются у&nbsp;вас</h2>
+          <p>
+            Никаких облаков, API-ключей и телеметрии. LLM, распознавание речи и синтез голоса
+            работают локально — продажи, клиенты и стратегия не покидают компьютер.
+          </p>
+          <ul class="check-list">
+            <li>Локальный LLM-сервер Ollama и модель qwen2.5</li>
+            <li>Whisper STT и Edge TTS без сети</li>
+            <li>DuckDB на диске — ваши файлы, ваши правила</li>
+            <li>Desktop-сборка: всё в одном DMG, без Python и Node</li>
+          </ul>
+        </div>
+        <div class="shield" aria-hidden="true">
+          <div class="shield-ring"></div>
+          <div class="shield-ring"></div>
+          <div class="shield-core">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#ede9ff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 3l8 3.5v5.2c0 5-3.4 8.6-8 10.3-4.6-1.7-8-5.3-8-10.3V6.5L12 3z"/>
+              <path d="M9 12l2 2 4-4"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="install">
+      <div class="section-head reveal">
+        <h2>Установка</h2>
+        <p class="section-sub">Три шага до локальной аналитики. macOS, Linux и Windows.</p>
+      </div>
+      <div class="steps">
+        <div class="step reveal">
+          <div class="step-num">1</div>
+          <h3>Скачайте DMG</h3>
+          <p>Возьмите сборку для Apple Silicon или Intel в <a href="https://github.com/M3etis/Offline-Sales-Analytics/releases/latest" target="_blank" rel="noopener noreferrer">Releases</a>. Приложение автономно — Ollama и модель внутри.</p>
+        </div>
+        <div class="step reveal">
+          <div class="step-num">2</div>
+          <h3>Перетащите в Applications</h3>
+          <p>Откройте DMG и установите приложение. При первом запуске: правый клик → Открыть.</p>
+        </div>
+        <div class="step reveal">
+          <div class="step-num">3</div>
+          <h3>Загрузите данные</h3>
+          <p>Войдите, добавьте CSV/XLSX или демо-данные — и спросите что-нибудь у ассистента.</p>
+        </div>
+      </div>
+      <p class="section-sub reveal" style="margin-top:16px">
+        Рекомендуется: macOS 14+ / Ubuntu 22.04+, 16+ ГБ RAM, SSD 20+ ГБ. Для dev-режима — Python 3.9+ и Node 20+.
+      </p>
+
+      <div class="source-install reveal" style="margin-top:28px">
+        <div class="section-head" style="margin-bottom:14px">
+          <h2 style="font-size:1.25rem">Или из исходников</h2>
+          <p class="section-sub">Запасной путь, если DMG ещё не опубликован или нужен dev-режим.</p>
+        </div>
+        <div class="terminal" aria-label="Сборка из исходников">
+          <div class="terminal-bar">
+            <i></i><i></i><i></i>
+            <span>macOS / Linux</span>
+          </div>
+          <pre><span class="cmt"># клонировать репозиторий</span>
+<span class="cmd">git clone</span> https://github.com/M3etis/Offline-Sales-Analytics.git
+<span class="cmd">cd</span> Offline-Sales-Analytics
+
+<span class="cmt"># автоустановка Ollama, модели, venv и зависимостей</span>
+<span class="cmd">chmod +x</span> start.sh
+<span class="cmd">./start.sh</span>
+
+<span class="cmt"># остановка</span>
+<span class="cmd">./stop.sh</span></pre>
+        </div>
+        <div class="terminal reveal" style="margin-top:12px" aria-label="Сборка из исходников Windows">
+          <div class="terminal-bar">
+            <i></i><i></i><i></i>
+            <span>Windows · PowerShell</span>
+          </div>
+          <pre><span class="cmd">git clone</span> https://github.com/M3etis/Offline-Sales-Analytics.git
+<span class="cmd">cd</span> Offline-Sales-Analytics
+<span class="cmd">powershell</span> -ExecutionPolicy Bypass -File start.ps1</pre>
+        </div>
+        <p class="section-sub" style="margin-top:14px">
+          Скрипт поднимет бэкенд и фронтенд, откроет <code>http://localhost:5173</code>.
+          Руководство по ручной установке и сборке Desktop (DMG) — в
+          <a href="https://github.com/M3etis/Offline-Sales-Analytics#readme" target="_blank" rel="noopener noreferrer">README</a>.
+        </p>
+      </div>
+    </section>
+
+    <section id="models">
+      <div class="section-head reveal">
+        <h2>Модели и производительность</h2>
+        <p class="section-sub">Выберите баланс скорости и качества SQL под ваше железо.</p>
+      </div>
+      <div class="table-shell reveal">
+        <table>
+          <thead>
+            <tr>
+              <th>Модель</th>
+              <th>RAM</th>
+              <th>Скорость</th>
+              <th>Качество SQL</th>
+              <th>Профиль</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>qwen2.5:7b</td>
+              <td>~5 ГБ</td>
+              <td>~20 ток/с</td>
+              <td>Базовое</td>
+              <td><span class="badge base">быстрый старт</span></td>
+            </tr>
+            <tr>
+              <td>qwen2.5:14b</td>
+              <td>~9 ГБ</td>
+              <td>~10 ток/с</td>
+              <td>Хорошее</td>
+              <td><span class="badge rec">рекомендуем</span></td>
+            </tr>
+            <tr>
+              <td>qwen2.5:32b</td>
+              <td>~20 ГБ</td>
+              <td>~3–4 ток/с</td>
+              <td>Отличное</td>
+              <td><span class="badge base">32 ГБ RAM</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="cta-band reveal">
+      <h2>Спросите данные — получите ответ</h2>
+      <p>Локальный ИИ для продаж: без облака, без SQL-курсов, без утечек.</p>
+      <div class="actions" style="margin-bottom:0">
+        <a class="btn btn-primary magnetic" href="https://github.com/M3etis/Offline-Sales-Analytics/releases/latest" target="_blank" rel="noopener noreferrer">Скачать DMG</a>
+        <a class="btn btn-secondary magnetic" href="https://github.com/M3etis/Offline-Sales-Analytics" target="_blank" rel="noopener noreferrer">View on GitHub</a>
+      </div>
+    </section>
+
+    <footer>
+      <span>Offline Sales Analytics · <a href="https://github.com/M3etis/Offline-Sales-Analytics" target="_blank" rel="noopener noreferrer">github.com/M3etis/Offline-Sales-Analytics</a></span>
+      <span>Лицензия «как есть» · offline-first</span>
+    </footer>
+  </div>
+
+  <script>
+    // ——— scroll progress + nav state ———
+    const progress = document.getElementById("progress");
+    const nav = document.getElementById("nav");
+    let ticking = false;
+    function onScroll() {
+      const st = window.scrollY;
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      if (progress) progress.style.width = (max > 0 ? (st / max) * 100 : 0) + "%";
+      if (nav) nav.classList.toggle("scrolled", st > 24);
+      ticking = false;
+    }
+    window.addEventListener("scroll", () => {
+      if (!ticking) {
+        ticking = true;
+        requestAnimationFrame(onScroll);
+      }
+    }, { passive: true });
+    onScroll();
+
+    // ——— scroll reveal ———
+    const revealEls = document.querySelectorAll(".reveal");
+    if ("IntersectionObserver" in window) {
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const el = entry.target;
+            const parent = el.parentElement;
+            const delay = parent && parent.classList.contains("grid")
+              ? [...parent.children].indexOf(el) % 4 * 70
+              : parent && parent.classList.contains("steps")
+                ? [...parent.children].indexOf(el) * 80
+                : 0;
+            el.style.transitionDelay = delay + "ms";
+            el.classList.add("is-visible");
+            io.unobserve(el);
+          }
+        });
+      }, { threshold: 0.12, rootMargin: "0px 0px -40px 0px" });
+      revealEls.forEach((el) => io.observe(el));
+    } else {
+      revealEls.forEach((el) => el.classList.add("is-visible"));
+    }
+
+    // ——— counters ———
+    const counters = document.querySelectorAll("[data-count]");
+    const animateCount = (el) => {
+      const target = parseFloat(el.getAttribute("data-count")) || 0;
+      const suffix = el.getAttribute("data-suffix") || "";
+      const duration = 1200;
+      const start = performance.now();
+      const step = (now) => {
+        const t = Math.min(1, (now - start) / duration);
+        const eased = 1 - Math.pow(1 - t, 3);
+        const value = Math.round(target * eased);
+        el.textContent = value + suffix;
+        if (t < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    };
+    if ("IntersectionObserver" in window) {
+      const cio = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            animateCount(entry.target);
+            cio.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.4 });
+      counters.forEach((el) => cio.observe(el));
+    } else {
+      counters.forEach(animateCount);
+    }
+
+    // ——— cursor glow on cards ———
+    document.querySelectorAll(".card").forEach((card) => {
+      card.addEventListener("pointermove", (e) => {
+        const r = card.getBoundingClientRect();
+        card.style.setProperty("--mx", (e.clientX - r.left) + "px");
+        card.style.setProperty("--my", (e.clientY - r.top) + "px");
+      });
+    });
+
+    // ——— magnetic buttons ———
+    document.querySelectorAll(".magnetic").forEach((btn) => {
+      const strength = 12;
+      btn.addEventListener("pointermove", (e) => {
+        const r = btn.getBoundingClientRect();
+        const x = e.clientX - r.left - r.width / 2;
+        const y = e.clientY - r.top - r.height / 2;
+        btn.style.transform = `translate(${x / strength}px, ${y / strength - 2}px)`;
+      });
+      btn.addEventListener("pointerleave", () => {
+        btn.style.transform = "";
+      });
+    });
+
+    // ——— 3D tilt on product shot ———
+    const shot = document.getElementById("shot");
+    const shotFrame = document.getElementById("shotFrame");
+    if (shot && shotFrame && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      shot.addEventListener("pointermove", (e) => {
+        const r = shot.getBoundingClientRect();
+        const px = (e.clientX - r.left) / r.width - 0.5;
+        const py = (e.clientY - r.top) / r.height - 0.5;
+        shotFrame.style.animation = "none";
+        shotFrame.style.transform = `rotateX(${-py * 8 + 2}deg) rotateY(${px * 10}deg) translateY(-4px) scale(1.01)`;
+      });
+      shot.addEventListener("pointerleave", () => {
+        shotFrame.style.transform = "";
+        shotFrame.style.animation = "";
+      });
+    }
+
+    // ——— typing loop on hero chat bubble ———
+    (function typeLoop() {
+      const el = document.getElementById("userBubble");
+      if (!el || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      const phrases = [
+        "Топ-5 категорий по выручке за квартал",
+        "Сравни продажи марта и апреля",
+        "Выручка по регионам за 12 месяцев",
+        "Найди аномалии в заказах",
+      ];
+      let idx = 0;
+      let char = 0;
+      let deleting = false;
+
+      function tickType() {
+        const full = phrases[idx];
+        if (!deleting) {
+          char++;
+          el.textContent = full.slice(0, char);
+          if (char === full.length) {
+            deleting = true;
+            setTimeout(tickType, 1800);
+            return;
+          }
+          setTimeout(tickType, 36 + Math.random() * 40);
+        } else {
+          char--;
+          el.textContent = full.slice(0, char);
+          if (char === 0) {
+            deleting = false;
+            idx = (idx + 1) % phrases.length;
+            setTimeout(tickType, 400);
+            return;
+          }
+          setTimeout(tickType, 22);
+        }
+      }
+      setTimeout(tickType, 900);
+    })();
+
+    // ——— particle field ———
+    (function () {
+      const canvas = document.getElementById("particles");
+      if (!canvas) return;
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const ctx = canvas.getContext("2d");
+      let w, h, particles = [], raf;
+
+      function resize() {
+        w = canvas.width = canvas.offsetWidth;
+        h = canvas.height = canvas.offsetHeight;
+        const count = Math.min(80, Math.floor((w * h) / 22000));
+        particles = Array.from({ length: count }, () => ({
+          x: Math.random() * w,
+          y: Math.random() * h,
+          r: Math.random() * 1.8 + 0.4,
+          vx: (Math.random() - 0.5) * 0.28,
+          vy: (Math.random() - 0.5) * 0.28,
+          a: Math.random() * 0.45 + 0.15
+        }));
+      }
+
+      function tick() {
+        ctx.clearRect(0, 0, w, h);
+        for (const p of particles) {
+          p.x += p.vx;
+          p.y += p.vy;
+          if (p.x < 0) p.x = w;
+          if (p.x > w) p.x = 0;
+          if (p.y < 0) p.y = h;
+          if (p.y > h) p.y = 0;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(196, 181, 253, " + p.a + ")";
+          ctx.fill();
+        }
+        for (let i = 0; i < particles.length; i++) {
+          for (let j = i + 1; j < particles.length; j++) {
+            const a = particles[i], b = particles[j];
+            const dx = a.x - b.x, dy = a.y - b.y;
+            const d = Math.hypot(dx, dy);
+            if (d < 110) {
+              ctx.strokeStyle = "rgba(134, 59, 255, " + (0.1 * (1 - d / 110)) + ")";
+              ctx.lineWidth = 1;
+              ctx.beginPath();
+              ctx.moveTo(a.x, a.y);
+              ctx.lineTo(b.x, b.y);
+              ctx.stroke();
+            }
+          }
+        }
+        raf = requestAnimationFrame(tick);
+      }
+
+      resize();
+      window.addEventListener("resize", resize);
+      if (!reduce) tick();
+      else {
+        ctx.clearRect(0, 0, w, h);
+        for (const p of particles) {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(196, 181, 253, " + p.a + ")";
+          ctx.fill();
+        }
+      }
+    })();
+  </script>
+</body>
+</html>
