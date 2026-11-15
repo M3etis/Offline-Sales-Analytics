@@ -1,0 +1,45 @@
+.data-table {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.data-table__toolbar {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.data-table__search {
+  width: min(360px, 100%);
+}
+
+.data-table__count {
+  font-family: var(--font-mono);
+  font-size: var(--text-12);
+  color: var(--text-muted);
+}
+
+.data-table__wrap .ui-table td {
+  white-space: nowrap;
+  max-width: 320px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.data-table__wrap .ui-table td.num {
+  font-family: var(--font-mono);
+  font-size: var(--text-12);
+}
+
+.data-table__col-name {
+  font-family: var(--font-mono);
+  font-weight: 400;
+}
+
+.data-table__empty-cell {
+  color: var(--text-muted);
+}
+
+.data-table__skeleton {
+  padding: var(--space-4);
+}

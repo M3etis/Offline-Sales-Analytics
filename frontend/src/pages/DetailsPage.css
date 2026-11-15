@@ -1,0 +1,21 @@
+.details__tables {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.details__tables-label {
+  font-size: var(--text-13);
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.details__panel {
+  overflow: hidden;
+}
+
+.details__loading {
+  padding: var(--space-5);
+}

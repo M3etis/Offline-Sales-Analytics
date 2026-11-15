@@ -1,0 +1,38 @@
+/* Основа — .ui-icon-btn (IconButton); здесь только состояния записи и распознавания */
+.voice-btn {
+  position: relative;
+}
+
+.voice-btn.is-recording {
+  background: var(--negative-soft);
+  color: var(--negative);
+}
+
+.voice-btn.is-recording svg {
+  width: 12px;
+  height: 12px;
+  fill: currentColor;
+}
+
+.voice-btn__dot {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--negative);
+  animation: voice-live 1.2s ease-in-out infinite;
+}
+
+/* Спиннер распознавания не приглушаем, как обычную отключённую кнопку */
+.voice-btn.is-processing:disabled {
+  opacity: 1;
+  cursor: progress;
+}
+
+@keyframes voice-live {
+  50% {
+    opacity: 0.25;
+  }
+}

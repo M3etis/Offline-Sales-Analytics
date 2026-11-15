@@ -1,0 +1,51 @@
+appId: com.sales-analytics.desktop
+productName: Sales Analytics
+directories:
+  output: release
+  buildResources: resources
+
+files:
+  - dist-electron/**/*
+
+extraResources:
+  - from: "../frontend/dist"
+    to: "frontend"
+  - from: "./build/backend"
+    to: "backend"
+  - from: "./resources/ollama"
+    to: "ollama"
+  - from: "./resources/ollama-models"
+    to: "ollama-models"
+  - from: "../app"
+    to: "app"
+  - from: "../requirements.txt"
+    to: "requirements.txt"
+  # data/ и .env в сборку не кладём: там рабочая база разработчика (пользователи с хешами
+  # паролей, история чатов, загруженные продажи) и его SECRET_KEY. База создаётся при первом
+  # запуске в userData, ключ генерируется там же (desktop/main/backend.ts)
+
+mac:
+  target:
+    - target: dmg
+      arch:
+        - arm64
+        - x64
+    - target: zip
+      arch:
+        - arm64
+        - x64
+  icon: resources/icon.icns
+  category: public.app-category.business
+
+win:
+  target:
+    - nsis
+  icon: resources/icon.ico
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+
+asar: true
+asarUnpack:
+  - "backend/**/*"

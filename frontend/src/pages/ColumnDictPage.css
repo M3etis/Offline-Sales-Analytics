@@ -1,0 +1,69 @@
+/* Страница занимает ровно высоту окна: прокручиваются только строки таблицы */
+.ui-page__inner.dict {
+  height: 100%;
+  padding-bottom: var(--space-8);
+}
+
+.dict > .ui-page-header {
+  flex-shrink: 0;
+}
+
+.dict__panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.dict__panel > .ui-panel__body {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.dict__panel .dict__toolbar,
+.dict__panel .ui-pagination {
+  flex-shrink: 0;
+}
+
+.dict__table-wrap {
+  flex: 0 1 auto;
+  min-height: 160px;
+}
+
+.dict__toolbar {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.dict__search {
+  width: min(320px, 100%);
+}
+
+.dict__count {
+  font-family: var(--font-mono);
+  font-size: var(--text-12);
+  color: var(--text-muted);
+}
+
+.dict__col-category {
+  width: 180px;
+}
+
+.dict__skeleton {
+  padding: var(--space-4) var(--space-5) var(--space-5);
+}
+
+.dict .ui-modal .ui-select {
+  width: 100%;
+}
+
+@media (max-width: 767px) {
+  .ui-page__inner.dict {
+    padding-bottom: var(--space-5);
+  }
+
+  .dict__col-category {
+    display: none;
+  }
+}

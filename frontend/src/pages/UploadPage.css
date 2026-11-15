@@ -1,0 +1,121 @@
+.upload__add {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: var(--space-6);
+  align-items: start;
+}
+
+.upload__side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.upload__block + .upload__block {
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--hairline);
+}
+
+.upload__url-row {
+  display: flex;
+  gap: var(--space-2);
+}
+
+/* поле ссылки занимает всю строку рядом с кнопкой (width: auto из base.css сильнее .ui-input) */
+.upload__url-row > .ui-input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.upload__block-title {
+  font-size: var(--text-13);
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.upload__block-text {
+  margin-top: 2px;
+  font-size: var(--text-12);
+  line-height: var(--leading-12);
+  color: var(--text-muted);
+}
+
+.upload__demo {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.upload__warnings {
+  margin-top: var(--space-2);
+  padding-left: var(--space-4);
+}
+
+.upload__name-cell {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.upload__name-cell--child {
+  padding-left: 36px;
+}
+
+.upload__name-spacer {
+  width: var(--control-sm);
+  flex-shrink: 0;
+}
+
+.upload__name {
+  max-width: 420px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+  border-radius: var(--radius-xs);
+  color: var(--text-primary);
+}
+
+.upload__name:hover {
+  text-decoration: underline;
+  text-decoration-color: var(--hairline-strong);
+  text-underline-offset: 3px;
+}
+
+.upload__name--mono {
+  font-family: var(--font-mono);
+  font-size: var(--text-13);
+  color: var(--text-secondary);
+}
+
+.upload__child-icon {
+  width: 14px;
+  height: 14px;
+  color: var(--text-muted);
+}
+
+.upload__child td {
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+.upload__col-date {
+  width: 140px;
+}
+
+@media (max-width: 899px) {
+  .upload__add {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 767px) {
+  .upload__col-date {
+    display: none;
+  }
+
+  .upload__name {
+    max-width: 44vw;
+  }
+}

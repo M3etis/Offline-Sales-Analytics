@@ -1,0 +1,213 @@
+.ui-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  height: var(--control-md);
+  padding: 0 var(--space-3);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-size: var(--text-14);
+  line-height: 1;
+  font-weight: 500;
+  white-space: nowrap;
+  user-select: none;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-fast) var(--ease),
+    border-color var(--dur-fast) var(--ease),
+    color var(--dur-fast) var(--ease),
+    transform var(--dur-fast) var(--ease);
+}
+
+.ui-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.ui-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ui-btn svg {
+  width: 16px;
+  height: 16px;
+  stroke-width: 1.75;
+}
+
+.ui-btn--sm {
+  height: var(--control-sm);
+  padding: 0 var(--space-2);
+  font-size: var(--text-13);
+  gap: 6px;
+  border-radius: var(--radius-sm);
+}
+
+.ui-btn--sm svg {
+  width: 14px;
+  height: 14px;
+}
+
+.ui-btn--lg {
+  height: 44px;
+  padding: 0 var(--space-5);
+  font-size: var(--text-14);
+}
+
+.ui-btn--block {
+  width: 100%;
+}
+
+.ui-btn--primary {
+  background: var(--fill-strong);
+  color: var(--on-strong);
+  box-shadow: var(--highlight-top);
+}
+
+.ui-btn--primary:hover:not(:disabled) {
+  background: var(--fill-strong-hover);
+}
+
+.ui-btn--accent {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.ui-btn--accent:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.ui-btn--secondary {
+  background: var(--surface-raised);
+  border-color: var(--hairline);
+  color: var(--text-primary);
+}
+
+.ui-btn--secondary:hover:not(:disabled) {
+  border-color: var(--hairline-strong);
+  background: color-mix(in srgb, var(--surface-raised), var(--text-primary) 4%);
+}
+
+.ui-btn--ghost {
+  background: transparent;
+  color: var(--text-secondary);
+}
+
+.ui-btn--ghost:hover:not(:disabled) {
+  background: var(--surface-hover);
+  color: var(--text-primary);
+}
+
+.ui-btn--danger {
+  background: var(--negative);
+  color: #fff;
+}
+
+.ui-btn--danger:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--negative), #000 12%);
+}
+
+.ui-btn--danger-outline {
+  background: transparent;
+  border-color: var(--border-danger);
+  color: var(--negative);
+}
+
+.ui-btn--danger-outline:hover:not(:disabled) {
+  background: var(--negative-soft);
+}
+
+/* Icon button */
+.ui-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: var(--control-md);
+  height: var(--control-md);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+  background: transparent;
+  transition:
+    background-color var(--dur-fast) var(--ease),
+    color var(--dur-fast) var(--ease),
+    border-color var(--dur-fast) var(--ease);
+}
+
+.ui-icon-btn svg {
+  width: 16px;
+  height: 16px;
+  stroke-width: 1.75;
+}
+
+.ui-icon-btn--sm {
+  width: var(--control-sm);
+  height: var(--control-sm);
+  border-radius: var(--radius-sm);
+}
+
+.ui-icon-btn--sm svg {
+  width: 14px;
+  height: 14px;
+}
+
+.ui-icon-btn:hover:not(:disabled) {
+  background: var(--surface-hover);
+  color: var(--text-primary);
+}
+
+.ui-icon-btn.is-active {
+  background: var(--surface-active);
+  color: var(--text-primary);
+}
+
+.ui-icon-btn--outline {
+  border-color: var(--hairline);
+  background: var(--surface-raised);
+}
+
+.ui-icon-btn--danger:hover:not(:disabled),
+.ui-icon-btn--danger:focus-visible {
+  background: var(--negative-soft);
+  color: var(--negative);
+}
+
+/* Главное действие в виде значка — отправка вопроса ассистенту */
+.ui-icon-btn--primary {
+  background: var(--fill-strong);
+  color: var(--on-strong);
+  transition:
+    background-color var(--dur-fast) var(--ease),
+    opacity var(--dur-fast) var(--ease),
+    transform var(--dur-fast) var(--ease);
+}
+
+.ui-icon-btn--primary svg {
+  stroke-width: 2;
+}
+
+.ui-icon-btn--primary:hover:not(:disabled) {
+  background: var(--fill-strong-hover);
+  color: var(--on-strong);
+}
+
+.ui-icon-btn--primary:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.ui-icon-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.ui-spinner {
+  display: inline-block;
+  flex-shrink: 0;
+  border: 1.5px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  opacity: 0.8;
+  animation: ui-spin 0.7s linear infinite;
+}

@@ -1,0 +1,188 @@
+/* Badge */
+.ui-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: var(--radius-xs);
+  font-size: var(--text-12);
+  line-height: 1;
+  font-weight: 500;
+  white-space: nowrap;
+  background: var(--surface-raised);
+  color: var(--text-secondary);
+  border: 1px solid var(--hairline);
+}
+
+.ui-badge--accent {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  border-color: transparent;
+}
+
+.ui-badge--positive {
+  background: var(--positive-soft);
+  color: var(--positive);
+  border-color: transparent;
+}
+
+.ui-badge--negative {
+  background: var(--negative-soft);
+  color: var(--negative);
+  border-color: transparent;
+}
+
+/* Status dot */
+.ui-dot {
+  display: inline-block;
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-muted);
+}
+
+.ui-dot--positive {
+  background: var(--positive);
+}
+
+.ui-dot--negative {
+  background: var(--negative);
+}
+
+.ui-dot--accent {
+  background: var(--accent);
+}
+
+/* Empty / error */
+.ui-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-2);
+  padding: var(--space-12) var(--space-6);
+  color: var(--text-secondary);
+}
+
+.ui-empty--compact {
+  padding: var(--space-8) var(--space-4);
+}
+
+.ui-empty__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  margin-bottom: var(--space-1);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  color: var(--text-muted);
+}
+
+.ui-empty__icon svg {
+  width: 20px;
+  height: 20px;
+  stroke-width: 1.5;
+}
+
+.ui-empty--error .ui-empty__icon {
+  color: var(--negative);
+  background: var(--negative-soft);
+}
+
+.ui-empty__title {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.ui-empty__description {
+  max-width: 44ch;
+  font-size: var(--text-13);
+  line-height: var(--leading-13);
+}
+
+.ui-empty__action {
+  margin-top: var(--space-2);
+  display: flex;
+  gap: var(--space-2);
+}
+
+/* Skeleton */
+.ui-skeleton {
+  display: block;
+  background: linear-gradient(90deg, var(--surface-raised) 0%, var(--surface-active) 50%, var(--surface-raised) 100%);
+  background-size: 200% 100%;
+  animation: ui-shimmer 1.4s linear infinite;
+}
+
+/* Колонка строк-заглушек (SkeletonLines) */
+.ui-skeleton-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Alert */
+.ui-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--hairline);
+  background: var(--surface-card);
+  font-size: var(--text-13);
+  line-height: var(--leading-13);
+}
+
+.ui-alert__icon {
+  display: flex;
+  padding-top: 2px;
+  color: var(--text-muted);
+}
+
+.ui-alert__icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.ui-alert__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ui-alert__title {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.ui-alert__text {
+  color: var(--text-secondary);
+}
+
+.ui-alert--positive {
+  border-color: var(--border-success);
+}
+
+.ui-alert--positive .ui-alert__icon {
+  color: var(--positive);
+}
+
+.ui-alert--negative {
+  border-color: var(--border-danger);
+  background: var(--negative-soft);
+}
+
+.ui-alert--negative .ui-alert__icon {
+  color: var(--negative);
+}
+
+.ui-alert--accent .ui-alert__icon {
+  color: var(--accent-text);
+}

@@ -1,0 +1,309 @@
+.file-upload {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+/* Drop zone */
+.file-upload__drop {
+  position: relative;
+  border: 1px dashed var(--hairline-strong);
+  border-radius: var(--radius-lg);
+  background: var(--surface-sunken);
+  transition:
+    border-color var(--dur-fast) var(--ease),
+    background-color var(--dur-fast) var(--ease);
+}
+
+.file-upload__drop:hover,
+.file-upload__drop.is-active {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--surface-sunken), var(--accent) 4%);
+}
+
+.file-upload__drop:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.file-upload__input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
+.file-upload__input:disabled {
+  cursor: progress;
+}
+
+.file-upload__label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 184px;
+  padding: var(--space-8) var(--space-6);
+  text-align: center;
+  pointer-events: none;
+}
+
+.file-upload__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  margin-bottom: var(--space-1);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  color: var(--text-secondary);
+}
+
+.file-upload__icon svg {
+  width: 18px;
+  height: 18px;
+  stroke-width: 1.75;
+}
+
+.file-upload__drop.is-active .file-upload__icon {
+  color: var(--accent-text);
+}
+
+.file-upload__title {
+  font-weight: 500;
+}
+
+.file-upload__hint {
+  font-size: var(--text-12);
+  line-height: var(--leading-12);
+  color: var(--text-muted);
+}
+
+/* Preview */
+.file-upload__preview {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--hairline-strong);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  animation: ui-enter var(--dur-slow) var(--ease) both;
+}
+
+.file-upload__preview-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.file-upload__file-icon {
+  width: 20px;
+  height: 20px;
+  color: var(--accent-text);
+  stroke-width: 1.5;
+}
+
+.file-upload__file {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.file-upload__file-name {
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-upload__file-meta {
+  font-family: var(--font-mono);
+  font-size: var(--text-12);
+  color: var(--text-muted);
+}
+
+.file-upload__relations {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--hairline);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.file-upload__section-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-12);
+  color: var(--text-muted);
+}
+
+.file-upload__section-label svg {
+  width: 14px;
+  height: 14px;
+}
+
+.file-upload__relations ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: var(--text-12);
+  color: var(--text-secondary);
+}
+
+.file-upload__table + .file-upload__table {
+  border-top: 1px solid var(--hairline);
+}
+
+.file-upload__table-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: 10px var(--space-4);
+  text-align: left;
+  transition: background-color var(--dur-fast) var(--ease);
+}
+
+.file-upload__table-head:hover {
+  background: var(--surface-hover);
+}
+
+.file-upload__table-head svg {
+  width: 14px;
+  height: 14px;
+  color: var(--text-muted);
+}
+
+.file-upload__table-name {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-13);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-upload__table-meta {
+  font-family: var(--font-mono);
+  font-size: var(--text-12);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.file-upload__table-body {
+  padding: 0 var(--space-2) var(--space-3);
+}
+
+.file-upload__table-body .ui-table th {
+  background: transparent;
+}
+
+.file-upload__nulls {
+  color: var(--accent-text);
+}
+
+.file-upload__sample-cell {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-upload__sample {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-2) 0;
+}
+
+.file-upload__sample-table {
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  max-height: 280px;
+}
+
+.file-upload__sample-table td {
+  white-space: nowrap;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.file-upload__actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--hairline);
+  background: var(--surface-sunken);
+  flex-wrap: wrap;
+}
+
+.file-upload__summary {
+  font-size: var(--text-13);
+  color: var(--text-secondary);
+}
+
+.file-upload__buttons {
+  display: flex;
+  gap: var(--space-2);
+}
+
+/* Progress */
+.file-upload__progress {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-5);
+  border: 1px solid var(--hairline-strong);
+  border-radius: var(--radius-lg);
+}
+
+.file-upload__progress-head {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font-size: var(--text-13);
+}
+
+.file-upload__bar {
+  position: relative;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--surface-raised);
+  overflow: hidden;
+}
+
+.file-upload__bar span {
+  position: absolute;
+  inset: 0;
+  background: var(--accent);
+  transform-origin: left;
+  transition: transform var(--dur-base) var(--ease);
+}
+
+.file-upload__bar.is-indeterminate span {
+  width: 30%;
+  right: auto;
+  animation: upload-indeterminate 1.4s var(--ease) infinite;
+}
+
+@keyframes upload-indeterminate {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(340%);
+  }
+}

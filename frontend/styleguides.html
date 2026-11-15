@@ -1,0 +1,1159 @@
+<!doctype html>
+<html lang="ru" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Дизайн-система · Offline Sales Analytics</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <!-- Токены — сам src/styles/tokens.css, а не копия: копия расходилась с ним (не было --focus-ring) -->
+  <link rel="stylesheet" href="src/styles/tokens.css" />
+  <style>
+    /* Шрифты: в приложении бандлятся через @fontsource. Здесь — локально установленный Plex
+       или файлы из node_modules (доступны при открытии через dev-сервер Vite). */
+    @font-face { font-family: "IBM Plex Sans"; font-weight: 400; font-display: swap; src: local("IBM Plex Sans"), local("IBMPlexSans"), url("/node_modules/@fontsource/ibm-plex-sans/files/ibm-plex-sans-cyrillic-400-normal.woff2") format("woff2"); unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
+    @font-face { font-family: "IBM Plex Sans"; font-weight: 400; font-display: swap; src: local("IBM Plex Sans"), local("IBMPlexSans"), url("/node_modules/@fontsource/ibm-plex-sans/files/ibm-plex-sans-latin-400-normal.woff2") format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+    @font-face { font-family: "IBM Plex Sans"; font-weight: 500; font-display: swap; src: local("IBM Plex Sans Medium"), local("IBMPlexSans-Medium"), url("/node_modules/@fontsource/ibm-plex-sans/files/ibm-plex-sans-cyrillic-500-normal.woff2") format("woff2"); unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
+    @font-face { font-family: "IBM Plex Sans"; font-weight: 500; font-display: swap; src: local("IBM Plex Sans Medium"), local("IBMPlexSans-Medium"), url("/node_modules/@fontsource/ibm-plex-sans/files/ibm-plex-sans-latin-500-normal.woff2") format("woff2"); unicode-range: U+0000-00FF, U+2000-206F, U+2212; }
+    @font-face { font-family: "IBM Plex Sans"; font-weight: 600; font-display: swap; src: local("IBM Plex Sans SemiBold"), local("IBMPlexSans-SemiBold"), url("/node_modules/@fontsource/ibm-plex-sans/files/ibm-plex-sans-cyrillic-600-normal.woff2") format("woff2"); unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
+    @font-face { font-family: "IBM Plex Sans"; font-weight: 600; font-display: swap; src: local("IBM Plex Sans SemiBold"), local("IBMPlexSans-SemiBold"), url("/node_modules/@fontsource/ibm-plex-sans/files/ibm-plex-sans-latin-600-normal.woff2") format("woff2"); unicode-range: U+0000-00FF, U+2000-206F, U+2212; }
+    @font-face { font-family: "IBM Plex Mono"; font-weight: 400; font-display: swap; src: local("IBM Plex Mono"), local("IBMPlexMono"), url("/node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-cyrillic-400-normal.woff2") format("woff2"); unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
+    @font-face { font-family: "IBM Plex Mono"; font-weight: 400; font-display: swap; src: local("IBM Plex Mono"), local("IBMPlexMono"), url("/node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-400-normal.woff2") format("woff2"); unicode-range: U+0000-00FF, U+2000-206F, U+2212; }
+    @font-face { font-family: "IBM Plex Mono"; font-weight: 500; font-display: swap; src: local("IBM Plex Mono Medium"), local("IBMPlexMono-Medium"), url("/node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-cyrillic-500-normal.woff2") format("woff2"); unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
+    @font-face { font-family: "IBM Plex Mono"; font-weight: 500; font-display: swap; src: local("IBM Plex Mono Medium"), local("IBMPlexMono-Medium"), url("/node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-500-normal.woff2") format("woff2"); unicode-range: U+0000-00FF, U+2000-206F, U+2212; }
+
+    /* ===== База ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; scroll-padding-top: 24px; }
+    body { font-family: var(--font-sans); font-size: var(--text-14); line-height: var(--leading-14); background: var(--surface-page); color: var(--text-primary); -webkit-font-smoothing: antialiased; }
+    a { color: inherit; }
+    button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+    code, kbd, pre { font-family: var(--font-mono); }
+    :focus { outline: none; }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    svg { display: block; flex-shrink: 0; }
+    .num { font-variant-numeric: tabular-nums; }
+    .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+    .muted { color: var(--text-muted); }
+    .secondary { color: var(--text-secondary); }
+    .visually-hidden { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    @keyframes ui-enter { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+    @keyframes ui-fade { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes ui-spin { to { transform: rotate(360deg); } }
+    @keyframes ui-shimmer { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } html { scroll-behavior: auto; } }
+
+    /* ===== Раскладка документа ===== */
+    .doc { display: grid; grid-template-columns: 264px minmax(0, 1fr); min-height: 100vh; }
+    .doc-nav { position: sticky; top: 0; height: 100vh; overflow: hidden; background: var(--surface-sunken); border-right: 1px solid var(--hairline); display: flex; flex-direction: column; }
+    .doc-nav__head { display: flex; align-items: center; gap: 10px; padding: 16px 16px 12px; font-weight: 600; }
+    .doc-nav__sub { display: block; font-weight: 400; font-size: var(--text-12); color: var(--text-muted); }
+    .doc-nav__search { padding: 0 12px 8px; }
+    .doc-nav__search input { width: 100%; height: 32px; padding: 0 10px; border-radius: var(--radius-md); border: 1px solid var(--hairline-strong); background: var(--surface-raised); color: var(--text-primary); font: inherit; font-size: var(--text-13); }
+    .doc-nav__search input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+    .doc-nav__list { list-style: none; padding: 4px 12px 16px; flex: 1; min-height: 0; overflow-y: auto; }
+    .doc-nav__group { margin-top: 16px; padding: 0 8px 6px; font-size: var(--text-12); color: var(--text-muted); }
+    .doc-nav__group:first-child { margin-top: 4px; }
+    .doc-nav a { display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 8px; border-radius: var(--radius-md); text-decoration: none; color: var(--text-secondary); font-size: var(--text-13); transition: background-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease); }
+    .doc-nav a:hover { background: var(--surface-hover); color: var(--text-primary); }
+    .doc-nav a.is-active { background: var(--surface-active); color: var(--text-primary); box-shadow: var(--highlight-top); }
+    .doc-nav a.is-active .doc-nav__num { color: var(--accent-text); }
+    .doc-nav a.is-sub { padding-left: 32px; height: 26px; font-size: var(--text-12); }
+    .doc-nav__num { width: 16px; font-family: var(--font-mono); font-size: var(--text-12); color: var(--text-muted); }
+    .doc-nav__foot { padding: 12px 16px 16px; border-top: 1px solid var(--hairline); display: flex; flex-direction: column; gap: 8px; }
+    .doc-main { min-width: 0; }
+    .doc-mobilebar { display: none; }
+    .doc-scrim { display: none; }
+    .doc-content { max-width: 1040px; margin: 0 auto; padding: 48px 40px 120px; display: flex; flex-direction: column; gap: 72px; }
+    .doc-section { display: flex; flex-direction: column; gap: 24px; scroll-margin-top: 24px; }
+    .doc-section > header { display: flex; flex-direction: column; gap: 6px; padding-bottom: 16px; border-bottom: 1px solid var(--hairline); }
+    .doc-eyebrow { font-family: var(--font-mono); font-size: var(--text-12); color: var(--accent-text); }
+    .doc-section h2 { font-size: var(--text-28); line-height: var(--leading-28); font-weight: 500; }
+    .doc-section h3 { font-size: var(--text-16); line-height: var(--leading-16); font-weight: 500; scroll-margin-top: 24px; }
+    .doc-lead { color: var(--text-secondary); max-width: 68ch; }
+    .doc-block { display: flex; flex-direction: column; gap: 12px; }
+    .doc-note { font-size: var(--text-13); color: var(--text-secondary); max-width: 72ch; }
+    .doc-note code, .doc-lead code, td code, li code { font-size: 0.92em; padding: 1px 5px; border-radius: var(--radius-xs); background: var(--surface-raised); border: 1px solid var(--hairline); }
+    .doc-stage { padding: 24px; border: 1px solid var(--hairline); border-radius: var(--radius-lg); background: var(--surface-card); display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+    .doc-stage--column { flex-direction: column; align-items: stretch; }
+    .doc-stage--sunken { background: var(--surface-page); }
+    .doc-grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .doc-grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+    .doc-rules { list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 24px; }
+    .doc-rules li { position: relative; padding-left: 18px; font-size: var(--text-13); color: var(--text-secondary); }
+    .doc-rules li::before { content: ""; position: absolute; left: 2px; top: 8px; width: 6px; height: 6px; border-radius: 1px; background: var(--chart-neutral); }
+    .doc-rules--do li::before { background: var(--positive); }
+    .doc-rules--dont li::before { background: var(--negative); }
+    .doc-hero { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 32px; align-items: center; }
+    .doc-hero h1 { font-size: 40px; line-height: 44px; font-weight: 500; letter-spacing: -0.02em; }
+    .doc-hero p { color: var(--text-secondary); margin-top: 12px; max-width: 52ch; }
+    .doc-hero__meta { display: flex; gap: 16px; margin-top: 20px; font-family: var(--font-mono); font-size: var(--text-12); color: var(--text-muted); flex-wrap: wrap; }
+    .doc-direction { list-style: none; display: flex; flex-direction: column; border: 1px solid var(--hairline); border-radius: var(--radius-lg); background: var(--surface-card); }
+    .doc-direction li { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 16px; padding: 14px 20px; }
+    .doc-direction li + li { border-top: 1px solid var(--hairline); }
+    .doc-direction b { font-weight: 500; color: var(--text-secondary); font-size: var(--text-13); }
+
+    /* Свотчи */
+    .swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+    .swatch { display: flex; flex-direction: column; border: 1px solid var(--hairline); border-radius: var(--radius-lg); overflow: hidden; background: var(--surface-card); text-align: left; transition: border-color var(--dur-fast) var(--ease); }
+    .swatch:hover { border-color: var(--hairline-strong); }
+    .swatch__chip { height: 64px; border-bottom: 1px solid var(--hairline); }
+    .swatch__meta { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; }
+    .swatch__name { font-family: var(--font-mono); font-size: var(--text-12); color: var(--text-primary); }
+    .swatch__value { font-family: var(--font-mono); font-size: var(--text-12); color: var(--text-muted); }
+    .swatch__role { font-size: var(--text-12); color: var(--text-secondary); }
+    .ramp-compare { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .ramp { border-radius: var(--radius-lg); overflow: hidden; border: 1px solid var(--hairline); }
+    .ramp__title { padding: 10px 14px; font-size: var(--text-12); font-family: var(--font-mono); }
+    .ramp__row { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; padding: 10px 14px; font-size: var(--text-13); }
+    .ramp__row span:last-child { font-family: var(--font-mono); font-size: var(--text-12); opacity: .75; }
+
+    /* Таблица токенов */
+    .tok-table { width: 100%; border-collapse: collapse; font-size: var(--text-13); }
+    .tok-table th, .tok-table td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--hairline); vertical-align: middle; }
+    .tok-table th { font-size: var(--text-12); font-weight: 500; color: var(--text-muted); }
+    .tok-table td.num { text-align: right; font-family: var(--font-mono); font-size: var(--text-12); }
+    .tok-wrap { border: 1px solid var(--hairline); border-radius: var(--radius-lg); background: var(--surface-card); overflow: auto; }
+    .tok-wrap .tok-table tr:last-child td { border-bottom: 0; }
+    .pass { color: var(--positive); }
+
+    /* Типографика */
+    .type-row { display: grid; grid-template-columns: 160px minmax(0, 1fr); gap: 24px; align-items: baseline; padding: 14px 20px; }
+    .type-row + .type-row { border-top: 1px solid var(--hairline); }
+    .type-row__meta { font-family: var(--font-mono); font-size: var(--text-12); color: var(--text-muted); line-height: 18px; }
+
+    /* Отступы */
+    .space-row { display: grid; grid-template-columns: 96px 56px minmax(0, 1fr); gap: 12px; align-items: center; padding: 6px 0; font-family: var(--font-mono); font-size: var(--text-12); color: var(--text-secondary); }
+    .space-bar { height: 12px; border-radius: 2px; background: var(--accent-soft); border: 1px solid color-mix(in srgb, var(--accent), transparent 55%); }
+    .radius-demo { width: 96px; height: 64px; background: var(--surface-raised); border: 1px solid var(--hairline-strong); display: flex; align-items: flex-end; padding: 8px; font-family: var(--font-mono); font-size: var(--text-12); color: var(--text-secondary); }
+    .nested { padding: 8px; border-radius: 16px; background: var(--surface-raised); border: 1px solid var(--hairline-strong); }
+    .nested > div { border-radius: 8px; background: var(--surface-card); border: 1px dashed var(--accent); padding: 12px 16px; font-family: var(--font-mono); font-size: var(--text-12); color: var(--text-secondary); }
+    .motion-demo { display: flex; gap: 12px; flex-wrap: wrap; }
+    .motion-demo .box { width: 120px; height: 72px; border-radius: var(--radius-lg); background: var(--surface-raised); border: 1px solid var(--hairline-strong); display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: var(--text-12); color: var(--text-secondary); }
+    .motion-demo .box.play { animation: ui-enter var(--dur-slow) var(--ease) both; }
+
+    /* ===== Компоненты (копия src/shared/ui/*.css) ===== */
+    .ui-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: var(--control-md); padding: 0 12px; border: 1px solid transparent; border-radius: var(--radius-md); font-size: var(--text-14); line-height: 1; font-weight: 500; white-space: nowrap; transition: background-color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease); }
+    .ui-btn:active:not(:disabled) { transform: scale(0.98); }
+    .ui-btn:disabled { opacity: .5; cursor: not-allowed; }
+    .ui-btn svg { width: 16px; height: 16px; }
+    .ui-btn--sm { height: var(--control-sm); padding: 0 8px; font-size: var(--text-13); gap: 6px; border-radius: var(--radius-sm); }
+    .ui-btn--sm svg { width: 14px; height: 14px; }
+    .ui-btn--lg { height: 44px; padding: 0 20px; }
+    .ui-btn--primary { background: var(--fill-strong); color: var(--on-strong); box-shadow: var(--highlight-top); }
+    .ui-btn--primary:hover:not(:disabled) { background: var(--fill-strong-hover); }
+    .ui-btn--accent { background: var(--accent); color: var(--on-accent); }
+    .ui-btn--accent:hover:not(:disabled) { background: var(--accent-hover); }
+    .ui-btn--secondary { background: var(--surface-raised); border-color: var(--hairline); color: var(--text-primary); }
+    .ui-btn--secondary:hover:not(:disabled) { border-color: var(--hairline-strong); }
+    .ui-btn--ghost { color: var(--text-secondary); }
+    .ui-btn--ghost:hover:not(:disabled) { background: var(--surface-hover); color: var(--text-primary); }
+    .ui-btn--danger { background: var(--negative); color: #fff; }
+    .ui-btn--danger-outline { border-color: var(--border-danger); color: var(--negative); }
+    .ui-btn--danger-outline:hover:not(:disabled) { background: var(--negative-soft); }
+    .ui-spinner { display: inline-block; width: 14px; height: 14px; border: 1.5px solid currentColor; border-right-color: transparent; border-radius: 50%; opacity: .8; animation: ui-spin .7s linear infinite; }
+    .ui-icon-btn { display: inline-flex; align-items: center; justify-content: center; width: var(--control-md); height: var(--control-md); border: 1px solid transparent; border-radius: var(--radius-md); color: var(--text-muted); transition: background-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease); }
+    .ui-icon-btn svg { width: 16px; height: 16px; }
+    .ui-icon-btn--sm { width: var(--control-sm); height: var(--control-sm); border-radius: var(--radius-sm); }
+    .ui-icon-btn--sm svg { width: 14px; height: 14px; }
+    .ui-icon-btn:hover { background: var(--surface-hover); color: var(--text-primary); }
+    .ui-icon-btn.is-active { background: var(--surface-active); color: var(--text-primary); }
+    .ui-icon-btn--outline { border-color: var(--hairline); background: var(--surface-raised); }
+    .ui-icon-btn--danger:hover, .ui-icon-btn--danger:focus-visible { background: var(--negative-soft); color: var(--negative); }
+
+    .ui-input, .ui-select { min-height: var(--control-md); padding: 6px 10px; background: var(--surface-raised); border: 1px solid var(--hairline-strong); border-radius: var(--radius-md); color: var(--text-primary); font: inherit; font-size: var(--text-14); width: 100%; transition: border-color var(--dur-fast) var(--ease); appearance: none; }
+    .ui-input:hover, .ui-select:hover { border-color: var(--text-muted); }
+    .ui-input:focus, .ui-select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+    .ui-input::placeholder { color: var(--text-muted); }
+    .ui-select { padding-right: 32px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%238e8e94' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' viewBox='0 0 24 24'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; cursor: pointer; }
+    .ui-textarea { min-height: 80px; resize: vertical; }
+    .ui-input--mono { font-family: var(--font-mono); font-size: var(--text-13); }
+    .ui-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+    .ui-field__label { font-size: var(--text-13); font-weight: 500; color: var(--text-secondary); }
+    .ui-field__hint { font-size: var(--text-12); line-height: var(--leading-12); color: var(--text-muted); }
+    .ui-field--error .ui-field__hint { color: var(--negative); }
+    .ui-field--error .ui-input { border-color: var(--negative); }
+    .ui-search { position: relative; display: flex; align-items: center; min-width: 220px; }
+    .ui-search > svg { position: absolute; left: 10px; width: 16px; height: 16px; color: var(--text-muted); pointer-events: none; }
+    .ui-search .ui-input { padding-left: 32px; }
+    .ui-segmented { display: inline-flex; padding: 2px; gap: 2px; background: var(--surface-raised); border: 1px solid var(--hairline); border-radius: var(--radius-md); }
+    .ui-segmented__item { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 12px; border-radius: var(--radius-sm); color: var(--text-secondary); font-size: var(--text-13); font-weight: 500; transition: background-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease); }
+    .ui-segmented__item svg { width: 14px; height: 14px; }
+    .ui-segmented__item:hover { color: var(--text-primary); }
+    .ui-segmented__item.is-selected { background: var(--surface-card); color: var(--text-primary); box-shadow: 0 0 0 1px var(--hairline-strong); }
+    .ui-chip { display: inline-flex; align-items: center; gap: 6px; height: var(--control-sm); padding: 0 10px; border-radius: var(--radius-sm); border: 1px solid var(--hairline); color: var(--text-muted); font-size: var(--text-13); transition: background-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease); }
+    .ui-chip svg { width: 14px; height: 14px; }
+    .ui-chip:hover { color: var(--text-primary); border-color: var(--hairline-strong); }
+    .ui-chip.is-on { color: var(--text-primary); background: var(--surface-active); border-color: var(--hairline-strong); }
+    .ui-chip.is-on svg { color: var(--accent-text); }
+    .ui-checkbox { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+    .ui-checkbox input { appearance: none; width: 16px; height: 16px; display: inline-grid; place-content: center; background: var(--surface-raised); border: 1px solid var(--hairline-strong); border-radius: var(--radius-xs); cursor: pointer; }
+    .ui-checkbox input::before { content: ""; width: 10px; height: 10px; transform: scale(0); transition: transform var(--dur-fast) var(--ease); background: var(--on-accent); clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%); }
+    .ui-checkbox input:checked { background: var(--accent); border-color: var(--accent); }
+    .ui-checkbox input:checked::before { transform: scale(1); }
+
+    .ui-badge { display: inline-flex; align-items: center; gap: 4px; height: 20px; padding: 0 6px; border-radius: var(--radius-xs); font-size: var(--text-12); line-height: 1; font-weight: 500; background: var(--surface-raised); color: var(--text-secondary); border: 1px solid var(--hairline); white-space: nowrap; }
+    .ui-badge--accent { background: var(--accent-soft); color: var(--accent-text); border-color: transparent; }
+    .ui-badge--positive { background: var(--positive-soft); color: var(--positive); border-color: transparent; }
+    .ui-badge--negative { background: var(--negative-soft); color: var(--negative); border-color: transparent; }
+    .ui-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--text-muted); flex-shrink: 0; }
+    .ui-dot--positive { background: var(--positive); } .ui-dot--negative { background: var(--negative); } .ui-dot--accent { background: var(--accent); }
+    .model-status { display: inline-flex; align-items: center; gap: 8px; height: 28px; padding: 0 8px; border-radius: var(--radius-sm); font-family: var(--font-mono); font-size: var(--text-12); color: var(--text-muted); }
+    .ui-alert { display: flex; align-items: flex-start; gap: 12px; padding: 12px 16px; border-radius: var(--radius-md); border: 1px solid var(--hairline); background: var(--surface-card); font-size: var(--text-13); line-height: var(--leading-13); }
+    .ui-alert__icon { display: flex; padding-top: 2px; color: var(--text-muted); }
+    .ui-alert__icon svg { width: 16px; height: 16px; }
+    .ui-alert__body { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+    .ui-alert__title { font-weight: 500; }
+    .ui-alert__text { color: var(--text-secondary); }
+    .ui-alert--positive { border-color: var(--border-success); } .ui-alert--positive .ui-alert__icon { color: var(--positive); }
+    .ui-alert--negative { border-color: var(--border-danger); background: var(--negative-soft); } .ui-alert--negative .ui-alert__icon { color: var(--negative); }
+    .ui-alert--accent .ui-alert__icon { color: var(--accent-text); }
+    .toast { display: inline-flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--surface-card); border: 1px solid var(--hairline-strong); border-radius: 10px; box-shadow: var(--shadow-float); }
+
+    .ui-panel { background: var(--surface-card); border: 1px solid var(--hairline); border-radius: var(--radius-lg); min-width: 0; }
+    .ui-panel__header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 16px 20px 0; }
+    .ui-panel__title { font-size: var(--text-14); font-weight: 500; }
+    .ui-panel__description { font-size: var(--text-13); color: var(--text-secondary); }
+    .ui-panel__body { padding: 16px 20px 20px; }
+    .ui-page-header { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+    .ui-page-header__title { font-size: var(--text-28); line-height: var(--leading-28); font-weight: 500; }
+    .ui-page-header__description { color: var(--text-secondary); }
+
+    .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); background: var(--surface-card); border: 1px solid var(--hairline); border-radius: var(--radius-lg); }
+    .stats > .ui-stat + .ui-stat { border-left: 1px solid var(--hairline); }
+    .ui-stat { display: flex; flex-direction: column; gap: 8px; padding: 16px 20px; min-width: 0; }
+    .ui-stat__label { font-size: var(--text-13); color: var(--text-secondary); }
+    .ui-stat__value { font-family: var(--font-mono); font-size: var(--text-28); line-height: var(--leading-28); font-weight: 500; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .ui-stat__change { font-size: var(--text-12); color: var(--text-muted); }
+    .ui-stat__change--up .num { color: var(--positive); } .ui-stat__change--down .num { color: var(--negative); }
+
+    .ui-ranked { list-style: none; display: flex; flex-direction: column; gap: 2px; }
+    .ui-ranked__button { display: flex; align-items: flex-start; gap: 12px; width: 100%; padding: 8px; border-radius: var(--radius-md); text-align: left; transition: background-color var(--dur-fast) var(--ease); }
+    .ui-ranked__button:hover { background: var(--surface-hover); }
+    .ui-ranked__item.is-selected .ui-ranked__button { background: var(--surface-active); }
+    .ui-ranked__rank { width: 16px; font-family: var(--font-mono); font-size: var(--text-12); color: var(--text-muted); text-align: right; padding-top: 1px; }
+    .ui-ranked__main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+    .ui-ranked__row { display: flex; align-items: baseline; gap: 12px; }
+    .ui-ranked__label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .ui-ranked__meta { font-family: var(--font-mono); font-size: var(--text-12); color: var(--text-muted); }
+    .ui-ranked__value { font-family: var(--font-mono); font-size: var(--text-13); }
+    .ui-ranked__track { display: block; height: 4px; border-radius: 2px; background: var(--chart-grid); overflow: hidden; }
+    .ui-ranked__bar { display: block; height: 100%; border-radius: 2px; background: var(--chart-neutral); }
+    .ui-ranked__item.is-lead .ui-ranked__bar { background: var(--chart-1); }
+
+    .ui-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: var(--text-14); }
+    .ui-table th, .ui-table td { padding: 10px 16px; text-align: left; border-bottom: 1px solid var(--hairline); }
+    .ui-table th { font-size: var(--text-12); font-weight: 500; color: var(--text-muted); white-space: nowrap; }
+    .ui-table tbody tr:last-child td { border-bottom: 0; }
+    .ui-table td.num, .ui-table th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .ui-table td.mono { font-family: var(--font-mono); font-size: var(--text-13); }
+    .ui-table td.actions { width: 1%; white-space: nowrap; text-align: right; }
+    .ui-table tbody tr:hover { background: var(--surface-hover); }
+    .ui-pagination { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 8px 16px; border-top: 1px solid var(--hairline); color: var(--text-secondary); font-size: var(--text-13); }
+    .ui-pagination__nav { display: flex; align-items: center; gap: 4px; }
+
+    .ui-menu-root { position: relative; display: inline-flex; }
+    .ui-menu { position: absolute; top: calc(100% + 4px); right: 0; z-index: 20; min-width: 220px; padding: 4px; background: var(--surface-card); border: 1px solid var(--hairline-strong); border-radius: var(--radius-lg); box-shadow: var(--shadow-float); animation: ui-enter var(--dur-base) var(--ease) both; }
+    .ui-menu[hidden] { display: none; }
+    .ui-menu__item { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 32px; padding: 6px 8px; border-radius: var(--radius-md); font-size: var(--text-14); text-align: left; }
+    .ui-menu__item:hover, .ui-menu__item:focus-visible { background: var(--surface-hover); outline: none; }
+    .ui-menu__item svg { width: 16px; height: 16px; color: var(--text-muted); }
+    .ui-menu__item--danger { color: var(--negative); } .ui-menu__item--danger svg { color: inherit; }
+    .ui-menu__item--danger:hover { background: var(--negative-soft); }
+    .ui-menu__meta { margin-left: auto; font-family: var(--font-mono); font-size: var(--text-12); color: var(--text-muted); }
+    .ui-menu__separator { height: 1px; margin: 4px -4px; background: var(--hairline); }
+    .ui-menu__label { padding: 8px 8px 4px; font-size: var(--text-12); color: var(--text-muted); }
+
+    .ui-modal-overlay { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; padding: 16px; background: var(--overlay); animation: ui-fade var(--dur-base) var(--ease) both; }
+    .ui-modal-overlay[hidden] { display: none; }
+    .ui-modal { width: 100%; max-width: 420px; background: var(--surface-card); border: 1px solid var(--hairline-strong); border-radius: var(--radius-xl); box-shadow: var(--shadow-float); animation: ui-enter var(--dur-base) var(--ease) both; }
+    .ui-modal__header { display: flex; justify-content: space-between; gap: 16px; padding: 20px 20px 0 24px; }
+    .ui-modal__title { font-size: var(--text-16); font-weight: 500; }
+    .ui-modal__description { color: var(--text-secondary); margin-top: 4px; }
+    .ui-modal__footer { display: flex; justify-content: flex-end; gap: 8px; padding: 20px 24px; }
+
+    .ui-empty { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; padding: 32px 16px; color: var(--text-secondary); }
+    .ui-empty__icon { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; margin-bottom: 4px; border-radius: var(--radius-md); background: var(--surface-raised); color: var(--text-muted); }
+    .ui-empty__icon svg { width: 20px; height: 20px; }
+    .ui-empty--error .ui-empty__icon { background: var(--negative-soft); color: var(--negative); }
+    .ui-empty__title { color: var(--text-primary); font-weight: 500; }
+    .ui-empty__description { max-width: 44ch; font-size: var(--text-13); }
+    .ui-skeleton { display: block; border-radius: 6px; background: linear-gradient(90deg, var(--surface-raised) 0%, var(--surface-active) 50%, var(--surface-raised) 100%); background-size: 200% 100%; animation: ui-shimmer 1.4s linear infinite; }
+
+    /* Паттерны */
+    .mini-sidebar { width: 248px; background: var(--surface-sunken); border: 1px solid var(--hairline); border-radius: var(--radius-lg); padding: 0 0 12px; display: flex; flex-direction: column; }
+    .mini-sidebar__brand { display: flex; align-items: center; gap: 10px; height: 56px; padding: 0 16px; font-weight: 600; }
+    .switcher { margin: 0 12px 8px; display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 6px 8px 6px 12px; border: 1px solid var(--hairline); border-radius: 10px; background: var(--surface-card); }
+    .switcher b { display: block; font-size: var(--text-13); font-weight: 500; }
+    .switcher span { font-family: var(--font-mono); font-size: var(--text-12); color: var(--text-muted); }
+    .nav-list { list-style: none; padding: 8px 12px; display: flex; flex-direction: column; gap: 2px; }
+    .nav-link { display: flex; align-items: center; gap: 10px; height: 32px; padding: 0 8px; border-radius: var(--radius-md); color: var(--text-secondary); font-size: var(--text-14); }
+    .nav-link svg { width: 16px; height: 16px; color: var(--text-muted); }
+    .nav-link:hover { background: var(--surface-hover); color: var(--text-primary); }
+    .nav-link.is-active { background: var(--surface-active); color: var(--text-primary); box-shadow: var(--highlight-top); }
+    .nav-link.is-active svg { color: var(--accent-text); }
+    .nav-group { padding: 16px 20px 0; font-size: var(--text-12); color: var(--text-muted); }
+    .composer { border: 1px solid var(--hairline-strong); border-radius: var(--radius-xl); background: var(--surface-card); }
+    .composer textarea { width: 100%; min-height: 52px; padding: 14px 16px 6px; border: 0; background: transparent; resize: none; color: var(--text-primary); font: inherit; }
+    .composer__bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 8px 8px 12px; }
+    .composer__send { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: var(--radius-md); background: var(--fill-strong); color: var(--on-strong); }
+    .bubble { align-self: flex-end; max-width: 80%; padding: 10px 14px; background: var(--surface-raised); border: 1px solid var(--hairline); border-radius: 14px 14px 4px 14px; }
+    .answer { display: flex; flex-direction: column; gap: 12px; }
+    .sheet { border: 1px solid var(--hairline); border-radius: var(--radius-lg); background: var(--surface-card); padding: 16px; }
+    kbd { display: inline-block; min-width: 18px; padding: 0 4px; border: 1px solid var(--hairline-strong); border-bottom-width: 2px; border-radius: var(--radius-xs); font-size: 11px; line-height: 16px; color: var(--text-secondary); text-align: center; }
+    .copy-hint { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(8px); padding: 8px 12px; border-radius: 10px; background: var(--fill-strong); color: var(--on-strong); font-size: var(--text-13); opacity: 0; pointer-events: none; transition: opacity var(--dur-base) var(--ease), transform var(--dur-base) var(--ease); z-index: 200; }
+    .copy-hint.is-visible { opacity: 1; transform: translateX(-50%); }
+    .code { padding: 14px 16px; border-radius: var(--radius-md); background: var(--surface-sunken); border: 1px solid var(--hairline); font-size: var(--text-12); line-height: 18px; color: var(--text-secondary); overflow-x: auto; white-space: pre; }
+    .file-map { list-style: none; font-family: var(--font-mono); font-size: var(--text-12); display: flex; flex-direction: column; gap: 4px; }
+    .file-map li { display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 16px; padding: 6px 0; border-bottom: 1px solid var(--hairline); }
+    .file-map li span:last-child { font-family: var(--font-sans); font-size: var(--text-13); color: var(--text-secondary); }
+
+    @media (max-width: 1023px) {
+      .doc { grid-template-columns: minmax(0, 1fr); }
+      .doc-nav { position: fixed; inset: 0 auto 0 0; width: min(300px, 86vw); z-index: 50; transform: translateX(-100%); transition: transform var(--dur-slow) var(--ease); box-shadow: var(--shadow-float); }
+      body.nav-open .doc-nav { transform: none; }
+      .doc-scrim { display: block; position: fixed; inset: 0; background: var(--overlay); z-index: 40; opacity: 0; pointer-events: none; transition: opacity var(--dur-base) var(--ease); }
+      body.nav-open .doc-scrim { opacity: 1; pointer-events: auto; }
+      .doc-mobilebar { display: flex; align-items: center; gap: 8px; position: sticky; top: 0; z-index: 30; height: 48px; padding: 0 12px 0 8px; background: var(--surface-sunken); border-bottom: 1px solid var(--hairline); font-weight: 500; }
+      .doc-content { padding: 32px 20px 96px; gap: 56px; }
+      .doc-hero, .doc-grid-2, .doc-grid-3, .ramp-compare { grid-template-columns: minmax(0, 1fr); }
+      .doc-rules { grid-template-columns: minmax(0, 1fr); }
+      .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .stats > .ui-stat:nth-child(3) { border-left: 0; }
+      .stats > .ui-stat:nth-child(n + 3) { border-top: 1px solid var(--hairline); }
+      .type-row { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+      .file-map li { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+      .doc-direction li { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Иконки lucide (stroke 1.75), один набор на весь интерфейс -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <symbol id="i-dashboard" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></symbol>
+      <symbol id="i-message" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></symbol>
+      <symbol id="i-history" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></symbol>
+      <symbol id="i-table" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/></symbol>
+      <symbol id="i-upload" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></symbol>
+      <symbol id="i-book" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></symbol>
+      <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></symbol>
+      <symbol id="i-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></symbol>
+      <symbol id="i-pencil" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21.17 6.81a1 1 0 0 0-3.98-3.98L3.84 16.17a2 2 0 0 0-.5.83l-1.32 4.35a.5.5 0 0 0 .62.62l4.35-1.32a2 2 0 0 0 .83-.5z"/></symbol>
+      <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol>
+      <symbol id="i-more" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></symbol>
+      <symbol id="i-chevrons" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></symbol>
+      <symbol id="i-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></symbol>
+      <symbol id="i-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></symbol>
+      <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+      <symbol id="i-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></symbol>
+      <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></symbol>
+      <symbol id="i-alert" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></symbol>
+      <symbol id="i-volume" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4.7a.7.7 0 0 0-1.2-.5L6.4 7.6A1.4 1.4 0 0 1 5.4 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.4a1.4 1.4 0 0 1 1 .4l3.4 3.4a.7.7 0 0 0 1.2-.5z"/><path d="M16 9a5 5 0 0 1 0 6"/><path d="M19.4 18.4a9 9 0 0 0 0-12.7"/></symbol>
+      <symbol id="i-chart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></symbol>
+      <symbol id="i-file" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></symbol>
+      <symbol id="i-mic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></symbol>
+      <symbol id="i-arrow-up" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></symbol>
+      <symbol id="i-thumb" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v12"/><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/></symbol>
+      <symbol id="i-play" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></symbol>
+      <symbol id="i-code" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m18 16 4-4-4-4"/><path d="m6 8-4 4 4 4"/><path d="m14.5 4-5 16"/></symbol>
+      <symbol id="i-db" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></symbol>
+      <symbol id="i-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></symbol>
+      <symbol id="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></symbol>
+      <symbol id="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></symbol>
+      <symbol id="mark" viewBox="0 0 20 20" fill="none"><rect x="1" y="1" width="18" height="18" rx="5" fill="var(--accent)"/><path d="M5.5 7h5M5.5 10h7.5M5.5 13h9" stroke="var(--on-accent)" stroke-width="1.6" stroke-linecap="round"/></symbol>
+    </defs>
+  </svg>
+
+  <div class="doc">
+    <nav class="doc-nav" id="doc-nav" aria-label="Разделы дизайн-системы">
+      <div class="doc-nav__head">
+        <svg width="22" height="22"><use href="#mark" /></svg>
+        <div>Offline Sales Analytics<span class="doc-nav__sub">Дизайн-система</span></div>
+      </div>
+      <div class="doc-nav__search">
+        <label class="visually-hidden" for="nav-filter">Найти раздел</label>
+        <input id="nav-filter" type="search" placeholder="Найти раздел" autocomplete="off" />
+      </div>
+      <ul class="doc-nav__list" id="nav-list">
+        <li class="doc-nav__group">Основа</li>
+        <li><a href="#overview"><span class="doc-nav__num">00</span>Обзор</a></li>
+        <li><a href="#direction"><span class="doc-nav__num">01</span>Направление</a></li>
+        <li><a href="#color"><span class="doc-nav__num">02</span>Цвет</a></li>
+        <li><a class="is-sub" href="#color-neutrals">Нейтрали</a></li>
+        <li><a class="is-sub" href="#color-accent">Акцент и смысл</a></li>
+        <li><a class="is-sub" href="#color-charts">Графики</a></li>
+        <li><a class="is-sub" href="#color-contrast">Контраст</a></li>
+        <li><a href="#type"><span class="doc-nav__num">03</span>Типографика</a></li>
+        <li><a href="#space"><span class="doc-nav__num">04</span>Отступы и сетка</a></li>
+        <li><a href="#shape"><span class="doc-nav__num">05</span>Радиусы и глубина</a></li>
+        <li><a href="#motion"><span class="doc-nav__num">06</span>Движение</a></li>
+        <li><a href="#icons"><span class="doc-nav__num">07</span>Иконки</a></li>
+        <li class="doc-nav__group">Компоненты</li>
+        <li><a href="#buttons"><span class="doc-nav__num">08</span>Кнопки</a></li>
+        <li><a href="#inputs"><span class="doc-nav__num">09</span>Поля и выбор</a></li>
+        <li><a href="#status"><span class="doc-nav__num">10</span>Бейджи и статусы</a></li>
+        <li><a href="#feedback"><span class="doc-nav__num">11</span>Сообщения</a></li>
+        <li><a href="#surfaces"><span class="doc-nav__num">12</span>Панели и заголовки</a></li>
+        <li><a href="#data"><span class="doc-nav__num">13</span>Показатели и списки</a></li>
+        <li><a href="#tables"><span class="doc-nav__num">14</span>Таблицы</a></li>
+        <li><a href="#overlays"><span class="doc-nav__num">15</span>Меню и окна</a></li>
+        <li><a href="#states"><span class="doc-nav__num">16</span>Пусто, ошибка, загрузка</a></li>
+        <li class="doc-nav__group">Паттерны</li>
+        <li><a href="#navigation"><span class="doc-nav__num">17</span>Навигация</a></li>
+        <li><a href="#assistant"><span class="doc-nav__num">18</span>Ассистент</a></li>
+        <li><a href="#charts"><span class="doc-nav__num">19</span>Графики</a></li>
+        <li><a href="#copy"><span class="doc-nav__num">20</span>Текст и тон</a></li>
+        <li><a href="#a11y"><span class="doc-nav__num">21</span>Доступность</a></li>
+        <li><a href="#code"><span class="doc-nav__num">22</span>В коде</a></li>
+      </ul>
+      <div class="doc-nav__foot">
+        <div class="ui-segmented" role="radiogroup" aria-label="Тема">
+          <button type="button" role="radio" class="ui-segmented__item is-selected" aria-checked="true" data-theme-set="dark"><svg><use href="#i-moon" /></svg>Тёмная</button>
+          <button type="button" role="radio" class="ui-segmented__item" aria-checked="false" data-theme-set="light"><svg><use href="#i-sun" /></svg>Светлая</button>
+        </div>
+        <span class="muted mono" style="font-size:12px">Клик по токену копирует его</span>
+      </div>
+    </nav>
+    <div class="doc-scrim" id="doc-scrim"></div>
+
+    <main class="doc-main">
+      <div class="doc-mobilebar">
+        <button class="ui-icon-btn" type="button" id="nav-open" aria-label="Открыть разделы" aria-controls="doc-nav" aria-expanded="false"><svg><use href="#i-menu" /></svg></button>
+        <svg width="18" height="18"><use href="#mark" /></svg>
+        <span>Дизайн-система</span>
+      </div>
+
+      <div class="doc-content">
+        <!-- 00 Обзор -->
+        <section class="doc-section" id="overview" aria-labelledby="overview-title">
+          <div class="doc-hero">
+            <div>
+              <span class="doc-eyebrow">Дизайн-система · v1 · ноябрь 2026</span>
+              <h1 id="overview-title" style="margin-top:8px">Ведомость под настольной лампой</h1>
+              <p>Графитовые нейтрали, цифры в колонках по правому краю и один янтарный акцент. Интерфейс молчит, говорят данные: линия выручки, ключевая цифра, ответ ассистента.</p>
+              <div class="doc-hero__meta"><span>IBM Plex Sans + Mono</span><span>4px-сетка</span><span>тёмная и светлая темы</span></div>
+            </div>
+            <div class="ui-panel" aria-hidden="true">
+              <div class="ui-panel__header"><div><p class="ui-panel__title">Выручка и прибыль по месяцам</p></div>
+                <div style="display:flex;gap:16px;font-size:12px;color:var(--text-secondary)"><span style="display:inline-flex;align-items:center;gap:6px"><i style="width:12px;height:3px;border-radius:1px;background:var(--chart-1)"></i>Выручка</span><span style="display:inline-flex;align-items:center;gap:6px"><i style="width:12px;height:2px;border-radius:1px;background:var(--chart-2)"></i>Прибыль</span></div>
+              </div>
+              <div class="ui-panel__body">
+                <svg viewBox="0 0 400 160" width="100%" height="160" role="img" aria-label="Пример главного графика">
+                  <defs><linearGradient id="fill" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="var(--chart-1)" stop-opacity=".22"/><stop offset="1" stop-color="var(--chart-1)" stop-opacity="0"/></linearGradient></defs>
+                  <g stroke="var(--chart-grid)"><line x1="0" x2="400" y1="30" y2="30"/><line x1="0" x2="400" y1="70" y2="70"/><line x1="0" x2="400" y1="110" y2="110"/><line x1="0" x2="400" y1="150" y2="150"/></g>
+                  <path d="M0 120 C30 90 50 40 80 30 S120 70 150 75 S200 72 220 45 S270 55 300 60 S340 70 360 35 L360 150 L0 150 Z" fill="url(#fill)" stroke="none"/>
+                  <path d="M0 120 C30 90 50 40 80 30 S120 70 150 75 S200 72 220 45 S270 55 300 60 S340 70 360 35" fill="none" stroke="var(--chart-1)" stroke-width="2"/>
+                  <path d="M360 35 L400 110" fill="none" stroke="var(--chart-1)" stroke-width="2" stroke-dasharray="4 4"/>
+                  <path d="M0 138 C30 125 50 105 80 102 S120 118 150 120 S200 112 220 104 S270 110 300 112 S340 116 360 100" fill="none" stroke="var(--chart-2)" stroke-width="1.5"/>
+                  <circle cx="360" cy="35" r="4" fill="var(--chart-1)"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 01 Направление -->
+        <section class="doc-section" id="direction" aria-labelledby="direction-title">
+          <header><span class="doc-eyebrow">01</span><h2 id="direction-title">Направление</h2><p class="doc-lead">Пять строк, из которых выводится каждое решение ниже. Если сомневаетесь, как оформить новый экран, — сверяйтесь с ними.</p></header>
+          <ul class="doc-direction">
+            <li><b>Продукт</b><span>Локальное рабочее место для анализа продаж: дашборд, таблицы и ассистент, который отвечает на вопросы по данным текстом и голосом. Данные не покидают компьютер.</span></li>
+            <li><b>Характер</b><span>Точный, сдержанный, немного тёплый.</span></li>
+            <li><b>Мир</b><span>Бухгалтерская ведомость под настольной лампой: графит, разлинованная бумага, цифры в колонках, янтарный свет.</span></li>
+            <li><b>Моменты</b><span>Главный график выручки и ответ ассистента как справка. Только там цвет и детали становятся богаче.</span></li>
+            <li><b>Сигнатура</b><span>Строка <span class="model-status" style="padding:0"><i class="ui-dot ui-dot--positive"></i>Локально · qwen2.5:14b</span> — живой статус локальной модели. В подвале сайдбара и под композером ассистента, больше нигде.</span></li>
+          </ul>
+          <div class="doc-grid-2">
+            <div class="doc-block"><h3>Делаем</h3><ul class="doc-rules doc-rules--do" style="grid-template-columns:1fr">
+              <li>Один акцент на экран: главное действие, выделение, ключевая линия</li>
+              <li>Глубина — ступенями поверхностей и волосяными линиями 8%</li>
+              <li>Цифры — моноширинные, табличные, справа</li>
+              <li>Подписи — с заглавной буквы, без капса и трекинга</li>
+              <li>Каждое изменение говорит, с чем сравнивает</li>
+            </ul></div>
+            <div class="doc-block"><h3>Не делаем</h3><ul class="doc-rules doc-rules--dont" style="grid-template-columns:1fr">
+              <li>Градиенты между цветами, градиентный текст, свечение</li>
+              <li>Эмодзи в интерфейсе, иконки «AI» и искры</li>
+              <li>Радужные графики, где цвет ничего не значит</li>
+              <li>Пульсации и «плавающие» элементы без живого состояния</li>
+              <li>Восклицательные знаки и приветствия в заголовках</li>
+            </ul></div>
+          </div>
+        </section>
+
+        <!-- 02 Цвет -->
+        <section class="doc-section" id="color" aria-labelledby="color-title">
+          <header><span class="doc-eyebrow">02</span><h2 id="color-title">Цвет</h2><p class="doc-lead">Нейтрали графитовые — на них смотрят часами. Цвет несут данные: янтарь для ведущей серии и главного действия, зелёный и красный — только для смысла.</p></header>
+
+          <div class="doc-block" id="color-neutrals">
+            <h3>Нейтрали</h3>
+            <p class="doc-note">Поверхности идут от самой глубокой (сайдбар) к приподнятой (поле, активная строка). Три роли текста: основной, вторичный, приглушённый — не больше.</p>
+            <div class="swatches" data-swatches="neutrals"></div>
+            <div class="ramp-compare" aria-label="Сравнение тем">
+              <div class="ramp" style="background:#141415;color:#ededed">
+                <div class="ramp__title" style="color:#8e8e94">Тёмная</div>
+                <div class="ramp__row" style="background:#0f0f10"><span>Sunken · сайдбар</span><span>#0f0f10</span></div>
+                <div class="ramp__row" style="background:#141415"><span>Page · фон</span><span>#141415</span></div>
+                <div class="ramp__row" style="background:#19191b"><span>Card · панель</span><span>#19191b</span></div>
+                <div class="ramp__row" style="background:#232325"><span>Raised · поле</span><span>#232325</span></div>
+                <div class="ramp__row" style="background:#141415;color:#a1a1a6"><span>Вторичный текст</span><span>#a1a1a6</span></div>
+                <div class="ramp__row" style="background:#141415;color:#8e8e94"><span>Приглушённый текст</span><span>#8e8e94</span></div>
+              </div>
+              <div class="ramp" style="background:#fafafa;color:#171717">
+                <div class="ramp__title" style="color:#6e6e73">Светлая</div>
+                <div class="ramp__row" style="background:#f4f4f5"><span>Sunken · сайдбар</span><span>#f4f4f5</span></div>
+                <div class="ramp__row" style="background:#fafafa"><span>Page · фон</span><span>#fafafa</span></div>
+                <div class="ramp__row" style="background:#ffffff"><span>Card · панель</span><span>#ffffff</span></div>
+                <div class="ramp__row" style="background:#f1f1f2"><span>Raised · поле</span><span>#f1f1f2</span></div>
+                <div class="ramp__row" style="background:#fafafa;color:#525252"><span>Вторичный текст</span><span>#525252</span></div>
+                <div class="ramp__row" style="background:#fafafa;color:#6e6e73"><span>Приглушённый текст</span><span>#6e6e73</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="doc-block" id="color-accent">
+            <h3>Акцент и смысл</h3>
+            <p class="doc-note">Янтарь занимает несколько процентов экрана. На светлой теме текст и линии акцентом берут <code>--accent-text</code> (#9a5b00), иначе контраст падает до 4:1. Основная кнопка — не акцентная: off-white на тёмной, почти чёрная на светлой.</p>
+            <div class="swatches" data-swatches="accent"></div>
+          </div>
+
+          <div class="doc-block" id="color-charts">
+            <h3>Графики</h3>
+            <p class="doc-note">Ведущая серия всегда <code>--chart-1</code>. Остальные — приглушённые оттенки, и только когда серии нужно различать. Для одной серии: лидер янтарём, остальные столбцы <code>--chart-neutral</code>.</p>
+            <div class="swatches" data-swatches="charts"></div>
+          </div>
+
+          <div class="doc-block" id="color-contrast">
+            <h3>Контраст</h3>
+            <div class="tok-wrap"><table class="tok-table">
+              <thead><tr><th>Пара</th><th>Тема</th><th class="num">Контраст</th><th>Применение</th></tr></thead>
+              <tbody>
+                <tr><td>text-primary на page</td><td>тёмная</td><td class="num">15,6 : 1</td><td class="pass">Основной текст</td></tr>
+                <tr><td>text-secondary на card</td><td>тёмная</td><td class="num">7,3 : 1</td><td class="pass">Описания, подписи</td></tr>
+                <tr><td>text-muted на card</td><td>тёмная</td><td class="num">5,4 : 1</td><td class="pass">Мета, оси графиков</td></tr>
+                <tr><td>on-accent на accent</td><td>обе</td><td class="num">8,5 : 1</td><td class="pass">Текст на янтарной заливке</td></tr>
+                <tr><td>accent-text на page</td><td>светлая</td><td class="num">5,2 : 1</td><td class="pass">Акцентный текст и линии</td></tr>
+                <tr><td>text-muted на page</td><td>светлая</td><td class="num">4,9 : 1</td><td class="pass">Мета</td></tr>
+              </tbody>
+            </table></div>
+          </div>
+        </section>
+
+        <!-- 03 Типографика -->
+        <section class="doc-section" id="type" aria-labelledby="type-title">
+          <header><span class="doc-eyebrow">03</span><h2 id="type-title">Типографика</h2><p class="doc-lead">IBM Plex Sans для интерфейса, IBM Plex Mono для цифр и меты. Оба с кириллицей и бандлятся в сборку через <code>@fontsource</code> — работают без интернета. Иерархия — размером и цветом, не жирностью.</p></header>
+          <div class="tok-wrap">
+            <div class="type-row"><div class="type-row__meta">Заголовок страницы<br>28 / 32 · 500</div><div style="font-size:28px;line-height:32px;font-weight:500">Продажи</div></div>
+            <div class="type-row"><div class="type-row__meta">Цифра показателя<br>Mono 28 / 32 · 500</div><div class="mono" style="font-size:28px;line-height:32px;font-weight:500;letter-spacing:-.01em">74,1 млн</div></div>
+            <div class="type-row"><div class="type-row__meta">Заголовок раздела<br>20 / 28 · 500</div><div style="font-size:20px;line-height:28px;font-weight:500">Спросите о продажах</div></div>
+            <div class="type-row"><div class="type-row__meta">Заголовок окна<br>16 / 24 · 500</div><div style="font-size:16px;line-height:24px;font-weight:500">Удалить базу?</div></div>
+            <div class="type-row"><div class="type-row__meta">Текст, навигация<br>14 / 20 · 400–500</div><div>Ассистент составит SQL-запрос к выбранной базе и построит график</div></div>
+            <div class="type-row"><div class="type-row__meta">Подпись, описание<br>13 / 20 · 400</div><div class="secondary" style="font-size:13px">Доля в выручке. Нажмите, чтобы увидеть товары категории</div></div>
+            <div class="type-row"><div class="type-row__meta">Мета, оси, счётчики<br>Mono 12 / 16 · 400</div><div class="mono muted" style="font-size:12px">2 000 строк · 15 ноя 2026, 14:32 · 2,3 с</div></div>
+          </div>
+          <div class="doc-grid-2">
+            <ul class="doc-rules doc-rules--do" style="grid-template-columns:1fr">
+              <li>Веса 400 и 500, 600 — только знак продукта</li>
+              <li>Все числа <code>tabular-nums</code>, суммы — моноширинным</li>
+              <li>Один формат: «74,1 млн», «2 000», «+12,4% к прошлому периоду»</li>
+              <li>Даты: «15 ноя 2026», на осях «ноя ’26»</li>
+            </ul>
+            <ul class="doc-rules doc-rules--dont" style="grid-template-columns:1fr">
+              <li>Капс с трекингом: «ВЫРУЧКА» → «Выручка»</li>
+              <li>Отрицательный трекинг на тексте мельче 16px</li>
+              <li>Курсив для выделения</li>
+              <li>Смешанные форматы: «74.1 млн» рядом с «74 105 225,3»</li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- 04 Отступы -->
+        <section class="doc-section" id="space" aria-labelledby="space-title">
+          <header><span class="doc-eyebrow">04</span><h2 id="space-title">Отступы и сетка</h2><p class="doc-lead">Всё по 4px. Внутри группы расстояние меньше, чем между группами. Одинаковые вещи — одинакового размера.</p></header>
+          <div class="doc-grid-2">
+            <div class="doc-stage doc-stage--column" id="space-scale"></div>
+            <div class="tok-wrap"><table class="tok-table">
+              <thead><tr><th>Где</th><th class="num">Значение</th></tr></thead>
+              <tbody>
+                <tr><td>Внутри контрола</td><td class="num">4–12</td></tr>
+                <tr><td>Строки списка, пункты меню</td><td class="num">2–4</td></tr>
+                <tr><td>Между группами, панелями</td><td class="num">16–24</td></tr>
+                <tr><td>Поля страницы</td><td class="num">32 · 16 на телефоне</td></tr>
+                <tr><td>Высота строки навигации</td><td class="num">32</td></tr>
+                <tr><td>Контролы sm / md / lg</td><td class="num">28 / 32 / 44</td></tr>
+                <tr><td>Сайдбар / свёрнутый</td><td class="num">248 / 56</td></tr>
+                <tr><td>Ширина контента</td><td class="num">880 · 1240 · 1440</td></tr>
+                <tr><td>Меню становится панелью</td><td class="num">&lt; 1024</td></tr>
+              </tbody>
+            </table></div>
+          </div>
+        </section>
+
+        <!-- 05 Радиусы и глубина -->
+        <section class="doc-section" id="shape" aria-labelledby="shape-title">
+          <header><span class="doc-eyebrow">05</span><h2 id="shape-title">Радиусы и глубина</h2><p class="doc-lead">Радиус зависит от размера. Вложенный радиус = внешний − отступ, не меньше 4. Тени — только у всплывающего: меню, окна, тосты.</p></header>
+          <div class="doc-stage">
+            <div class="radius-demo" style="border-radius:4px">xs 4</div>
+            <div class="radius-demo" style="border-radius:6px">sm 6</div>
+            <div class="radius-demo" style="border-radius:8px">md 8</div>
+            <div class="radius-demo" style="border-radius:12px">lg 12</div>
+            <div class="radius-demo" style="border-radius:16px">xl 16</div>
+            <div class="nested"><div>16 − 8 = 8</div></div>
+          </div>
+          <div class="doc-grid-3">
+            <div class="doc-stage doc-stage--column" style="gap:6px"><b style="font-weight:500">Ступень поверхности</b><span class="doc-note">Панель на фоне страницы отличается тоном и волосяной линией <code>--hairline</code></span></div>
+            <div class="doc-stage doc-stage--column" style="gap:6px;box-shadow:var(--highlight-top)"><b style="font-weight:500">Верхний блик</b><span class="doc-note">Активный пункт и основная кнопка на тёмной теме: <code>--highlight-top</code></span></div>
+            <div class="doc-stage doc-stage--column" style="gap:6px;box-shadow:var(--shadow-float)"><b style="font-weight:500">Всплывающее</b><span class="doc-note">Меню, окна, тосты: <code>--shadow-float</code></span></div>
+          </div>
+        </section>
+
+        <!-- 06 Движение -->
+        <section class="doc-section" id="motion" aria-labelledby="motion-title">
+          <header><span class="doc-eyebrow">06</span><h2 id="motion-title">Движение</h2><p class="doc-lead">Одна кривая <code>cubic-bezier(0.22, 1, 0.36, 1)</code>, три длительности. Анимируются только цвет, фон, рамка, прозрачность и transform. С <code>prefers-reduced-motion</code> движение отключается.</p></header>
+          <div class="doc-grid-2">
+            <div class="tok-wrap"><table class="tok-table">
+              <thead><tr><th>Токен</th><th class="num">мс</th><th>Для чего</th></tr></thead>
+              <tbody>
+                <tr><td><code>--dur-fast</code></td><td class="num">140</td><td>Наведение, нажатие, переключатели</td></tr>
+                <tr><td><code>--dur-base</code></td><td class="num">200</td><td>Меню, окна, тултипы</td></tr>
+                <tr><td><code>--dur-slow</code></td><td class="num">360</td><td>Появление страницы, выезд панели</td></tr>
+              </tbody>
+            </table></div>
+            <div class="doc-stage doc-stage--column">
+              <div class="motion-demo" id="motion-demo"><div class="box">fade + 4px</div><div class="box">360 мс</div></div>
+              <button class="ui-btn ui-btn--secondary ui-btn--sm" type="button" id="motion-play" style="align-self:flex-start">Повторить появление</button>
+              <p class="doc-note">Зацикленное движение — только у живых процессов: запись голоса, курсор потокового ответа, загрузка.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 07 Иконки -->
+        <section class="doc-section" id="icons" aria-labelledby="icons-title">
+          <header><span class="doc-eyebrow">07</span><h2 id="icons-title">Иконки</h2><p class="doc-lead">Только <code>lucide-react</code>, 16px, линия 1.75, цвет роли текста. Иконка без подписи всегда получает <code>aria-label</code> и тултип — это делает <code>IconButton</code>.</p></header>
+          <div class="doc-stage" style="gap:20px;color:var(--text-secondary)">
+            <svg width="16" height="16"><use href="#i-dashboard"/></svg><svg width="16" height="16"><use href="#i-message"/></svg><svg width="16" height="16"><use href="#i-history"/></svg><svg width="16" height="16"><use href="#i-table"/></svg><svg width="16" height="16"><use href="#i-upload"/></svg><svg width="16" height="16"><use href="#i-book"/></svg><svg width="16" height="16"><use href="#i-db"/></svg><svg width="16" height="16"><use href="#i-chart"/></svg><svg width="16" height="16"><use href="#i-mic"/></svg><svg width="16" height="16"><use href="#i-volume"/></svg><svg width="16" height="16"><use href="#i-thumb"/></svg><svg width="16" height="16"><use href="#i-code"/></svg><svg width="16" height="16"><use href="#i-pencil"/></svg><svg width="16" height="16"><use href="#i-trash"/></svg><svg width="16" height="16"><use href="#i-search"/></svg>
+          </div>
+          <div class="doc-stage" style="gap:24px">
+            <span style="display:inline-flex;align-items:center;gap:10px"><svg width="20" height="20"><use href="#mark"/></svg><b style="font-weight:600">Offline Sales Analytics</b></span>
+            <span class="doc-note">Знак — страница ведомости с тремя строками разной длины. Один цвет, без градиентов; тот же глиф — favicon.</span>
+          </div>
+        </section>
+
+        <!-- 08 Кнопки -->
+        <section class="doc-section" id="buttons" aria-labelledby="buttons-title">
+          <header><span class="doc-eyebrow">08 · Button, IconButton</span><h2 id="buttons-title">Кнопки</h2><p class="doc-lead">Одна основная кнопка на экран. Вторичные действия — secondary или ghost. Красная заливка — только в подтверждении необратимого действия.</p></header>
+          <div class="doc-stage">
+            <button class="ui-btn ui-btn--primary" type="button">Импортировать</button>
+            <button class="ui-btn ui-btn--secondary" type="button"><svg><use href="#i-plus"/></svg><span>Новый диалог</span></button>
+            <button class="ui-btn ui-btn--ghost" type="button">Отмена</button>
+            <button class="ui-btn ui-btn--accent" type="button">Акцент</button>
+            <button class="ui-btn ui-btn--danger-outline" type="button">Удалить все базы</button>
+            <button class="ui-btn ui-btn--danger" type="button">Сбросить всё</button>
+          </div>
+          <div class="doc-stage">
+            <button class="ui-btn ui-btn--primary ui-btn--lg" type="button">Войти</button>
+            <button class="ui-btn ui-btn--secondary" type="button">Средняя 32</button>
+            <button class="ui-btn ui-btn--secondary ui-btn--sm" type="button">Малая 28</button>
+            <button class="ui-btn ui-btn--secondary" type="button" disabled>Недоступна</button>
+            <button class="ui-btn ui-btn--primary" type="button" aria-busy="true" disabled><span class="ui-spinner"></span><span>Загрузка</span></button>
+          </div>
+          <div class="doc-stage">
+            <button class="ui-icon-btn" type="button" aria-label="Изменить"><svg><use href="#i-pencil"/></svg></button>
+            <button class="ui-icon-btn ui-icon-btn--danger" type="button" aria-label="Удалить"><svg><use href="#i-trash"/></svg></button>
+            <button class="ui-icon-btn is-active" type="button" aria-label="Показать SQL-запрос" aria-pressed="true"><svg><use href="#i-code"/></svg></button>
+            <button class="ui-icon-btn ui-icon-btn--outline" type="button" aria-label="Ещё действия"><svg><use href="#i-more"/></svg></button>
+            <button class="ui-icon-btn ui-icon-btn--sm" type="button" aria-label="Предыдущая страница"><svg><use href="#i-left"/></svg></button>
+            <span class="doc-note">Удаление в строках — тихая иконка, краснеет только при наведении и фокусе.</span>
+          </div>
+        </section>
+
+        <!-- 09 Поля -->
+        <section class="doc-section" id="inputs" aria-labelledby="inputs-title">
+          <header><span class="doc-eyebrow">09 · Field, Input, Select, SearchInput, Segmented, ToggleChip, Checkbox</span><h2 id="inputs-title">Поля и выбор</h2><p class="doc-lead">У каждого поля видимая подпись; плейсхолдер не заменяет её. Ошибка — под полем, красным, с ролью alert.</p></header>
+          <div class="doc-grid-2">
+            <div class="doc-stage doc-stage--column">
+              <div class="ui-field"><label class="ui-field__label" for="f1">Логин</label><input class="ui-input" id="f1" value="admin" /></div>
+              <div class="ui-field ui-field--error"><label class="ui-field__label" for="f2">По ссылке</label><input class="ui-input" id="f2" value="ftp://data" aria-describedby="f2h" /><p class="ui-field__hint" id="f2h" role="alert">Нужна прямая ссылка на CSV или Excel</p></div>
+              <div class="ui-field"><label class="ui-field__label" for="f3">Название колонки</label><input class="ui-input ui-input--mono" id="f3" value="customer_segment" /><p class="ui-field__hint">Как в таблице</p></div>
+            </div>
+            <div class="doc-stage doc-stage--column">
+              <div class="ui-search"><svg><use href="#i-search"/></svg><input class="ui-input" type="search" placeholder="Поиск по всем колонкам" aria-label="Поиск" /></div>
+              <select class="ui-select" aria-label="Категория"><option>Все категории</option><option>Финансы</option><option>Даты</option></select>
+              <div class="ui-segmented" role="radiogroup" aria-label="Фильтр оценок" data-segmented>
+                <button type="button" role="radio" aria-checked="true" class="ui-segmented__item is-selected">Все</button>
+                <button type="button" role="radio" aria-checked="false" class="ui-segmented__item"><svg><use href="#i-thumb"/></svg>Полезные</button>
+                <button type="button" role="radio" aria-checked="false" class="ui-segmented__item">Бесполезные</button>
+              </div>
+              <div style="display:flex;gap:4px;flex-wrap:wrap" data-chips>
+                <button type="button" class="ui-chip is-on" aria-pressed="true"><svg><use href="#i-volume"/></svg>Озвучка</button>
+                <button type="button" class="ui-chip is-on" aria-pressed="true"><svg><use href="#i-chart"/></svg>Графики</button>
+                <button type="button" class="ui-chip" aria-pressed="false"><svg><use href="#i-file"/></svg>Подробно</button>
+              </div>
+              <label class="ui-checkbox"><input type="checkbox" checked /> <span>Дашборд</span></label>
+              <label class="ui-checkbox"><input type="checkbox" /> <span>Очистка</span></label>
+            </div>
+          </div>
+        </section>
+
+        <!-- 10 Бейджи -->
+        <section class="doc-section" id="status" aria-labelledby="status-title">
+          <header><span class="doc-eyebrow">10 · Badge, StatusDot, ModelStatus</span><h2 id="status-title">Бейджи и статусы</h2><p class="doc-lead">Бейдж — тихий текст на подложке, не светящаяся пилюля. Категориям не нужен свой цвет: цвет — только у смысла.</p></header>
+          <div class="doc-stage">
+            <span class="ui-badge">Классификация</span>
+            <span class="ui-badge ui-badge--accent">Текущая</span>
+            <span class="ui-badge ui-badge--positive">Работает</span>
+            <span class="ui-badge ui-badge--negative">Ошибка</span>
+            <span style="display:inline-flex;gap:12px;align-items:center;margin-left:12px"><i class="ui-dot ui-dot--positive"></i><i class="ui-dot ui-dot--accent"></i><i class="ui-dot ui-dot--negative"></i><i class="ui-dot"></i></span>
+          </div>
+          <div class="doc-stage doc-stage--column" style="align-items:flex-start;gap:4px">
+            <span class="model-status"><i class="ui-dot ui-dot--positive"></i>Локально · qwen2.5:14b</span>
+            <span class="model-status"><i class="ui-dot ui-dot--accent"></i>Нет модели · qwen2.5:14b</span>
+            <span class="model-status"><i class="ui-dot ui-dot--negative"></i><span style="color:var(--negative)">Модель недоступна</span></span>
+            <span class="model-status"><i class="ui-dot"></i>Проверка модели…</span>
+            <p class="doc-note" style="margin-top:8px">Сигнатура продукта. Опрос <code>GET /api/v1/ai/ollama-status</code> раз в 30 с, один на всё приложение (<code>useModelStatus</code>).</p>
+          </div>
+        </section>
+
+        <!-- 11 Сообщения -->
+        <section class="doc-section" id="feedback" aria-labelledby="feedback-title">
+          <header><span class="doc-eyebrow">11 · Alert, toast</span><h2 id="feedback-title">Сообщения</h2><p class="doc-lead">Результат действия — тост. Состояние, которое нужно прочитать или на которое нужно ответить, — Alert в потоке страницы. <code>alert()</code> и <code>confirm()</code> браузера не используем.</p></header>
+          <div class="doc-stage doc-stage--column">
+            <div class="ui-alert ui-alert--positive" role="status"><span class="ui-alert__icon"><svg><use href="#i-check"/></svg></span><div class="ui-alert__body"><p class="ui-alert__title">Загружено 2 000 строк</p><p class="ui-alert__text">Всего в базе 12 400 строк.</p></div><button class="ui-btn ui-btn--secondary ui-btn--sm" type="button">Открыть таблицу</button></div>
+            <div class="ui-alert ui-alert--negative" role="alert"><span class="ui-alert__icon"><svg><use href="#i-alert"/></svg></span><div class="ui-alert__body"><p class="ui-alert__title">Не удалось получить ответ</p><p class="ui-alert__text">Модель не ответила за 120 секунд.</p></div><button class="ui-btn ui-btn--secondary ui-btn--sm" type="button">Повторить</button></div>
+            <div class="ui-alert" role="status"><span class="ui-alert__icon"><svg><use href="#i-info"/></svg></span><div class="ui-alert__body"><p class="ui-alert__title">Перезапуск недоступен в этой сборке</p><p class="ui-alert__text">Службами управляет само приложение.</p></div></div>
+            <div><span class="toast"><i class="ui-dot ui-dot--positive"></i>Правила сохранены</span></div>
+          </div>
+        </section>
+
+        <!-- 12 Панели -->
+        <section class="doc-section" id="surfaces" aria-labelledby="surfaces-title">
+          <header><span class="doc-eyebrow">12 · Page, PageHeader, Panel, Toolbar</span><h2 id="surfaces-title">Панели и заголовки</h2><p class="doc-lead">Заголовок страницы называет контекст, а не здоровается. Под ним — одна строка о том, что здесь происходит. Действие страницы — справа.</p></header>
+          <div class="doc-stage doc-stage--column doc-stage--sunken" style="gap:24px">
+            <div class="ui-page-header"><div><h3 class="ui-page-header__title">История</h3><p class="ui-page-header__description">Диалоги с ассистентом по базе demo_sales.csv</p></div><button class="ui-btn ui-btn--primary" type="button"><svg><use href="#i-plus"/></svg><span>Новый диалог</span></button></div>
+            <div class="ui-panel"><div class="ui-panel__header"><div><p class="ui-panel__title">Категории</p><p class="ui-panel__description">Доля в выручке. Нажмите, чтобы увидеть товары категории</p></div><button class="ui-btn ui-btn--ghost ui-btn--sm" type="button"><svg><use href="#i-x"/></svg><span>Все категории</span></button></div><div class="ui-panel__body"><p class="doc-note">Тело панели: 16 сверху, 20 по бокам и снизу.</p></div></div>
+          </div>
+        </section>
+
+        <!-- 13 Показатели -->
+        <section class="doc-section" id="data" aria-labelledby="data-title">
+          <header><span class="doc-eyebrow">13 · Stat, RankedList</span><h2 id="data-title">Показатели и списки</h2><p class="doc-lead">Показатель — это число, подпись и изменение с базой сравнения. Без иконок и мини-графиков. Точное значение — в подсказке.</p></header>
+          <div class="stats">
+            <div class="ui-stat"><span class="ui-stat__label">Выручка</span><span class="ui-stat__value" title="74 105 225,3">74,1 млн</span><span class="ui-stat__change ui-stat__change--up"><span class="num">+12,4%</span> к прошлому периоду</span></div>
+            <div class="ui-stat"><span class="ui-stat__label">Прибыль</span><span class="ui-stat__value">29,8 млн</span><span class="ui-stat__change ui-stat__change--down"><span class="num">−3,1%</span> к прошлому периоду</span></div>
+            <div class="ui-stat"><span class="ui-stat__label">Заказы</span><span class="ui-stat__value">2 000</span></div>
+            <div class="ui-stat"><span class="ui-stat__label">Средний чек</span><span class="ui-stat__value">37,1 тыс.</span></div>
+          </div>
+          <div class="ui-panel"><div class="ui-panel__header"><div><p class="ui-panel__title">Топ товаров</p><p class="ui-panel__description">Доля — список с тонкой полосой вместо пончика</p></div></div>
+            <div class="ui-panel__body" style="padding:12px">
+              <ol class="ui-ranked">
+                <li class="ui-ranked__item is-lead"><button class="ui-ranked__button" type="button"><span class="ui-ranked__rank">1</span><span class="ui-ranked__main"><span class="ui-ranked__row"><span class="ui-ranked__label">Смартфон X</span><span class="ui-ranked__meta">190 шт.</span><span class="ui-ranked__value">9,4 млн</span></span><span class="ui-ranked__track"><span class="ui-ranked__bar" style="width:100%"></span></span></span></button></li>
+                <li class="ui-ranked__item"><button class="ui-ranked__button" type="button"><span class="ui-ranked__rank">2</span><span class="ui-ranked__main"><span class="ui-ranked__row"><span class="ui-ranked__label">Планшет Z</span><span class="ui-ranked__meta">160 шт.</span><span class="ui-ranked__value">8,9 млн</span></span><span class="ui-ranked__track"><span class="ui-ranked__bar" style="width:94%"></span></span></span></button></li>
+                <li class="ui-ranked__item"><button class="ui-ranked__button" type="button"><span class="ui-ranked__rank">3</span><span class="ui-ranked__main"><span class="ui-ranked__row"><span class="ui-ranked__label">Наушники Air</span><span class="ui-ranked__meta">157 шт.</span><span class="ui-ranked__value">7,6 млн</span></span><span class="ui-ranked__track"><span class="ui-ranked__bar" style="width:80%"></span></span></span></button></li>
+              </ol>
+            </div>
+          </div>
+        </section>
+
+        <!-- 14 Таблицы -->
+        <section class="doc-section" id="tables" aria-labelledby="tables-title">
+          <header><span class="doc-eyebrow">14 · Table, Pagination</span><h2 id="tables-title">Таблицы</h2><p class="doc-lead">Ведомость: волосяные строки, числа справа и моноширинные (<code>td.num</code>), идентификаторы — <code>td.mono</code>, действия — последней колонкой.</p></header>
+          <div class="ui-panel" style="overflow:hidden">
+            <div style="overflow:auto"><table class="ui-table">
+              <thead><tr><th>Колонка</th><th>По-русски</th><th>Категория</th><th class="num">Строк</th><th class="actions"><span class="visually-hidden">Действия</span></th></tr></thead>
+              <tbody>
+                <tr><td class="mono">customer_segment</td><td>сегмент клиента</td><td><span class="ui-badge">Классификация</span></td><td class="num mono">2 000</td><td class="actions"><button class="ui-icon-btn ui-icon-btn--sm" type="button" aria-label="Изменить"><svg><use href="#i-pencil"/></svg></button><button class="ui-icon-btn ui-icon-btn--sm ui-icon-btn--danger" type="button" aria-label="Удалить"><svg><use href="#i-trash"/></svg></button></td></tr>
+                <tr><td class="mono">total_amount</td><td>сумма</td><td><span class="ui-badge">Финансы</span></td><td class="num mono">12 400</td><td class="actions"><button class="ui-icon-btn ui-icon-btn--sm" type="button" aria-label="Изменить"><svg><use href="#i-pencil"/></svg></button><button class="ui-icon-btn ui-icon-btn--sm ui-icon-btn--danger" type="button" aria-label="Удалить"><svg><use href="#i-trash"/></svg></button></td></tr>
+                <tr><td class="mono">order_date</td><td>дата заказа</td><td><span class="ui-badge">Даты</span></td><td class="num mono">874</td><td class="actions"><button class="ui-icon-btn ui-icon-btn--sm" type="button" aria-label="Изменить"><svg><use href="#i-pencil"/></svg></button><button class="ui-icon-btn ui-icon-btn--sm ui-icon-btn--danger" type="button" aria-label="Удалить"><svg><use href="#i-trash"/></svg></button></td></tr>
+              </tbody>
+            </table></div>
+            <div class="ui-pagination"><span class="num">1–50 из 374</span><div class="ui-pagination__nav"><button class="ui-icon-btn ui-icon-btn--sm" type="button" aria-label="Предыдущая страница" disabled style="opacity:.4"><svg><use href="#i-left"/></svg></button><span class="num" style="min-width:56px;text-align:center;color:var(--text-primary)">1 / 8</span><button class="ui-icon-btn ui-icon-btn--sm" type="button" aria-label="Следующая страница"><svg><use href="#i-right"/></svg></button></div></div>
+          </div>
+        </section>
+
+        <!-- 15 Меню и окна -->
+        <section class="doc-section" id="overlays" aria-labelledby="overlays-title">
+          <header><span class="doc-eyebrow">15 · Menu, Modal, useConfirm</span><h2 id="overlays-title">Меню и окна</h2><p class="doc-lead">Меню открывается по клику, управляется стрелками, Esc возвращает фокус на кнопку. Окно ловит фокус, закрывается по Esc и клику по подложке. Подтверждение называет действие: «Удалить 12 диалогов», а не «Подтвердить».</p></header>
+          <div class="doc-stage" style="min-height:120px;align-items:flex-start">
+            <div class="ui-menu-root" data-menu>
+              <button class="ui-btn ui-btn--ghost ui-btn--sm" type="button" aria-haspopup="menu" aria-expanded="false"><svg><use href="#i-file"/></svg><span>Экспорт</span></button>
+              <div class="ui-menu" role="menu" hidden style="left:0;right:auto">
+                <div class="ui-menu__label">Формат</div>
+                <button class="ui-menu__item" role="menuitem" type="button" tabindex="-1"><svg><use href="#i-file"/></svg>Документ Word<span class="ui-menu__meta">.docx</span></button>
+                <button class="ui-menu__item" role="menuitem" type="button" tabindex="-1"><svg><use href="#i-file"/></svg>PDF<span class="ui-menu__meta">.pdf</span></button>
+                <div class="ui-menu__separator" role="separator"></div>
+                <button class="ui-menu__item ui-menu__item--danger" role="menuitem" type="button" tabindex="-1"><svg><use href="#i-trash"/></svg>Удалить все мои диалоги</button>
+              </div>
+            </div>
+            <button class="ui-btn ui-btn--secondary ui-btn--sm" type="button" id="modal-open">Открыть подтверждение</button>
+          </div>
+          <div class="ui-modal-overlay" id="modal" hidden>
+            <div class="ui-modal" role="alertdialog" aria-modal="true" aria-labelledby="modal-title" aria-describedby="modal-desc" tabindex="-1">
+              <div class="ui-modal__header"><div><h2 class="ui-modal__title" id="modal-title">Удалить все диалоги?</h2><p class="ui-modal__description" id="modal-desc">Все ваши диалоги и их история будут удалены. Загруженные базы и настройки не изменятся.</p></div><button class="ui-icon-btn ui-icon-btn--sm" type="button" aria-label="Закрыть" data-close><svg><use href="#i-x"/></svg></button></div>
+              <div class="ui-modal__footer"><button class="ui-btn ui-btn--secondary" type="button" data-close>Отмена</button><button class="ui-btn ui-btn--danger" type="button" data-close>Удалить 12 диалогов</button></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 16 Состояния -->
+        <section class="doc-section" id="states" aria-labelledby="states-title">
+          <header><span class="doc-eyebrow">16 · EmptyState, ErrorState, Skeleton</span><h2 id="states-title">Пусто, ошибка, загрузка</h2><p class="doc-lead">У каждого блока данных три состояния кроме нормального. Пусто — говорит, что делать дальше. Ошибка — предлагает повторить. Загрузка — скелетон формы будущего контента, а не спиннер посреди экрана.</p></header>
+          <div class="doc-grid-3">
+            <div class="ui-panel"><div class="ui-empty"><div class="ui-empty__icon"><svg><use href="#i-db"/></svg></div><p class="ui-empty__title">Нет данных для дашборда</p><p class="ui-empty__description">Загрузите выгрузку продаж — показатели появятся здесь.</p><button class="ui-btn ui-btn--primary ui-btn--sm" type="button" style="margin-top:8px">Загрузить данные</button></div></div>
+            <div class="ui-panel"><div class="ui-empty ui-empty--error"><div class="ui-empty__icon"><svg><use href="#i-alert"/></svg></div><p class="ui-empty__title">Не удалось загрузить данные</p><p class="ui-empty__description">Проверьте, что сервер запущен, и попробуйте ещё раз.</p><button class="ui-btn ui-btn--secondary ui-btn--sm" type="button" style="margin-top:8px">Повторить</button></div></div>
+            <div class="ui-panel"><div style="display:flex;flex-direction:column;gap:14px;padding:24px"><span class="ui-skeleton" style="height:14px;width:60%"></span><span class="ui-skeleton" style="height:32px;width:45%"></span><span class="ui-skeleton" style="height:14px;width:80%"></span><span class="ui-skeleton" style="height:14px;width:70%"></span></div></div>
+          </div>
+        </section>
+
+        <!-- 17 Навигация -->
+        <section class="doc-section" id="navigation" aria-labelledby="navigation-title">
+          <header><span class="doc-eyebrow">17 · AppShell, Sidebar, DatasetSwitcher, UserMenu</span><h2 id="navigation-title">Навигация</h2><p class="doc-lead">Один сайдбар без верхней шапки. Переключатель базы наверху — он меняет дашборд, ассистента и таблицу. Настройки — отдельной группой и всегда видны. Ниже 1024px сайдбар становится выезжающей панелью.</p></header>
+          <div class="doc-grid-2" style="align-items:start">
+            <div class="mini-sidebar" aria-hidden="true">
+              <div class="mini-sidebar__brand"><svg width="20" height="20"><use href="#mark"/></svg>Offline Sales Analytics</div>
+              <div class="switcher"><div style="flex:1"><b>demo_sales.csv</b><span>2 000 строк</span></div><svg width="14" height="14" style="color:var(--text-muted)"><use href="#i-chevrons"/></svg></div>
+              <ul class="nav-list">
+                <li><a class="nav-link is-active"><svg><use href="#i-dashboard"/></svg>Дашборд</a></li>
+                <li><a class="nav-link"><svg><use href="#i-message"/></svg>Ассистент</a></li>
+                <li><a class="nav-link"><svg><use href="#i-history"/></svg>История</a></li>
+                <li><a class="nav-link"><svg><use href="#i-table"/></svg>Данные</a></li>
+              </ul>
+              <p class="nav-group">Настройки</p>
+              <ul class="nav-list">
+                <li><a class="nav-link"><svg><use href="#i-upload"/></svg>Загрузка данных</a></li>
+                <li><a class="nav-link"><svg><use href="#i-book"/></svg>Словарь колонок</a></li>
+              </ul>
+              <div style="border-top:1px solid var(--hairline);margin-top:8px;padding:8px 12px 0"><span class="model-status"><i class="ui-dot ui-dot--positive"></i>Локально · qwen2.5:14b</span></div>
+            </div>
+            <ul class="doc-rules" style="grid-template-columns:1fr">
+              <li>Строки 32px, зазор 2px, иконки в одной колонке</li>
+              <li>Подпись группы: 24 сверху, 8 до пунктов</li>
+              <li>Активный пункт — ступень поверхности, верхний блик и янтарная иконка</li>
+              <li>Свёрнутый режим 56px: только иконки с тултипами</li>
+              <li>Меню пользователя внизу: тема и выход. Настроек в нём нет</li>
+              <li><code>document.title</code> = «Раздел · Offline Sales Analytics»</li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- 18 Ассистент -->
+        <section class="doc-section" id="assistant" aria-labelledby="assistant-title">
+          <header><span class="doc-eyebrow">18 · AnalystPage, ChatMessage, VoiceButton</span><h2 id="assistant-title">Ассистент</h2><p class="doc-lead">Вопрос — справа на приподнятой поверхности. Ответ — справка на фоне страницы, без бот-аватара. Таблица или график — листом под текстом. Действия ответа тихие и всегда видны.</p></header>
+          <div class="doc-stage doc-stage--column doc-stage--sunken" style="gap:24px">
+            <div class="bubble">Топ-10 товаров по выручке</div>
+            <div class="answer">
+              <p>Лидер — Смартфон X: 9,4 млн, на 6% больше, чем у Планшета Z.</p>
+              <div class="sheet">
+                <svg viewBox="0 0 400 120" width="100%" height="120" role="img" aria-label="Пример столбчатого графика: лидер янтарём, остальные нейтральные">
+                  <g stroke="var(--chart-grid)"><line x1="0" x2="400" y1="20" y2="20"/><line x1="0" x2="400" y1="70" y2="70"/><line x1="0" x2="400" y1="118" y2="118"/></g>
+                  <rect x="8" y="20" width="28" height="98" rx="3" fill="var(--chart-1)"/><rect x="48" y="26" width="28" height="92" rx="3" fill="var(--chart-neutral)"/><rect x="88" y="40" width="28" height="78" rx="3" fill="var(--chart-neutral)"/><rect x="128" y="50" width="28" height="68" rx="3" fill="var(--chart-neutral)"/><rect x="168" y="52" width="28" height="66" rx="3" fill="var(--chart-neutral)"/><rect x="208" y="72" width="28" height="46" rx="3" fill="var(--chart-neutral)"/><rect x="248" y="74" width="28" height="44" rx="3" fill="var(--chart-neutral)"/><rect x="288" y="74" width="28" height="44" rx="3" fill="var(--chart-neutral)"/><rect x="328" y="75" width="28" height="43" rx="3" fill="var(--chart-neutral)"/><rect x="368" y="78" width="28" height="40" rx="3" fill="var(--chart-neutral)"/>
+                </svg>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center"><div style="display:flex;gap:2px;margin-left:-6px"><button class="ui-icon-btn ui-icon-btn--sm" type="button" aria-label="Прослушать"><svg><use href="#i-play"/></svg></button><button class="ui-icon-btn ui-icon-btn--sm" type="button" aria-label="Ответ полезен"><svg><use href="#i-thumb"/></svg></button><button class="ui-icon-btn ui-icon-btn--sm" type="button" aria-label="Показать SQL-запрос"><svg><use href="#i-code"/></svg></button></div><span class="mono muted" style="font-size:12px">2,3 с · из кэша от 15 ноя 2026, 14:32</span></div>
+            </div>
+            <div class="composer">
+              <label class="visually-hidden" for="composer-demo">Вопрос ассистенту</label>
+              <textarea id="composer-demo" rows="1" placeholder="Вопрос по данным"></textarea>
+              <div class="composer__bar">
+                <div style="display:flex;gap:4px;flex-wrap:wrap"><span class="ui-chip is-on"><svg><use href="#i-volume"/></svg>Озвучка</span><span class="ui-chip is-on"><svg><use href="#i-chart"/></svg>Графики</span><span class="ui-chip"><svg><use href="#i-file"/></svg>Подробно</span></div>
+                <div style="display:flex;gap:4px"><button class="ui-icon-btn" type="button" aria-label="Задать вопрос голосом"><svg><use href="#i-mic"/></svg></button><button class="composer__send" type="button" aria-label="Отправить вопрос"><svg width="16" height="16"><use href="#i-arrow-up"/></svg></button></div>
+              </div>
+            </div>
+            <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap"><span class="model-status" style="padding:0"><i class="ui-dot ui-dot--positive"></i>Локально · qwen2.5:14b</span><span class="muted" style="font-size:12px"><kbd>Enter</kbd> отправить · <kbd>Shift</kbd>+<kbd>Enter</kbd> новая строка</span></div>
+          </div>
+        </section>
+
+        <!-- 19 Графики -->
+        <section class="doc-section" id="charts" aria-labelledby="charts-title">
+          <header><span class="doc-eyebrow">19 · chartTheme, ChartTooltip</span><h2 id="charts-title">Графики</h2><p class="doc-lead">У графиков есть иерархия, как у текста. Один главный — самый большой на экране. Остальное — меньше и другого рода: ранжированный список, таблица.</p></header>
+          <div class="doc-grid-2">
+            <ul class="doc-rules" style="grid-template-columns:1fr">
+              <li>Тренд — линия. Сравнение — столбцы. Доля — список с полосами</li>
+              <li>Сетка <code>--chart-grid</code>, только горизонтальная</li>
+              <li>Подписи осей — Plex Mono 12, <code>--text-muted</code>, без линий осей</li>
+              <li>Ведущая серия — янтарь с тональной заливкой 22% → 0</li>
+              <li>Неполный текущий месяц — пунктиром и подписью</li>
+              <li>Отрицательные значения — <code>--negative</code></li>
+            </ul>
+            <div class="code">import { axisProps, gridProps, seriesColor } from '../shared/charts/chartTheme';
+import { ChartTooltip } from '../shared/charts/ChartTooltip';
+
+&lt;CartesianGrid {...gridProps} /&gt;
+&lt;XAxis dataKey="period" {...axisProps} tickFormatter={formatMonthTick} /&gt;
+&lt;Tooltip content={&lt;ChartTooltip valueFormatter={formatExact} /&gt;} /&gt;
+&lt;Line dataKey="revenue" stroke={seriesColor(0)} strokeWidth={2} dot={false} /&gt;</div>
+          </div>
+        </section>
+
+        <!-- 20 Текст -->
+        <section class="doc-section" id="copy" aria-labelledby="copy-title">
+          <header><span class="doc-eyebrow">20</span><h2 id="copy-title">Текст и тон</h2><p class="doc-lead">Пишем как аккуратный аналитик: коротко, по делу, со своими существительными. Короткие строки — без точки в конце.</p></header>
+          <div class="tok-wrap"><table class="tok-table">
+            <thead><tr><th>Было</th><th>Стало</th><th>Правило</th></tr></thead>
+            <tbody>
+              <tr><td class="muted">Привет! Я ваш AI-аналитик…</td><td>Спросите о продажах</td><td>Заголовок называет контекст, не здоровается</td></tr>
+              <tr><td class="muted">ВЫРУЧКА</td><td>Выручка</td><td>Без капса</td></tr>
+              <tr><td class="muted">Успешно загружено!</td><td>Загружено 2 000 строк</td><td>Без восклицаний, с фактом</td></tr>
+              <tr><td class="muted">Спросите что-нибудь о продажах...</td><td>Вопрос по данным</td><td>Плейсхолдер короткий</td></tr>
+              <tr><td class="muted">TOP N</td><td>Топ-10 товаров по выручке</td><td>Пример — готовый вопрос</td></tr>
+              <tr><td class="muted">Подтвердить</td><td>Удалить 12 диалогов</td><td>Кнопка говорит, что случится</td></tr>
+              <tr><td class="muted">2 таблиц</td><td>2 таблицы</td><td><code>pluralRu</code>, <code>formatCount</code></td></tr>
+              <tr><td class="muted">2025-11-15T00:00:00</td><td>15 ноя 2025</td><td><code>formatDate</code>, <code>formatPeriod</code></td></tr>
+            </tbody>
+          </table></div>
+        </section>
+
+        <!-- 21 Доступность -->
+        <section class="doc-section" id="a11y" aria-labelledby="a11y-title">
+          <header><span class="doc-eyebrow">21</span><h2 id="a11y-title">Доступность</h2><p class="doc-lead">Всё, что можно нажать мышью, доступно с клавиатуры и видно в фокусе.</p></header>
+          <ul class="doc-rules">
+            <li>Кольцо фокуса 2px янтарём через <code>:focus-visible</code></li>
+            <li>Текст ≥ 4,5 : 1, графические элементы ≥ 3 : 1</li>
+            <li>Иконочные кнопки — <code>aria-label</code> и тултип</li>
+            <li>Окна: <code>role="dialog"</code>, фокус-трап, Esc, возврат фокуса</li>
+            <li>Меню: стрелки, Home, End, Esc</li>
+            <li>Segmented — <code>radiogroup</code>, чипы — <code>aria-pressed</code></li>
+            <li>Строки таблиц кликабельны, но ссылка в первой ячейке тоже есть</li>
+            <li>Статус загрузки — <code>role="status"</code> с <code>aria-live</code></li>
+            <li>Цвет не единственный носитель смысла: «Ошибка» — бейдж с текстом</li>
+            <li><code>prefers-reduced-motion</code> выключает анимации</li>
+          </ul>
+        </section>
+
+        <!-- 22 Код -->
+        <section class="doc-section" id="code" aria-labelledby="code-title">
+          <header><span class="doc-eyebrow">22</span><h2 id="code-title">В коде</h2><p class="doc-lead">Источник правды — CSS-переменные и компоненты в <code>frontend/src</code>. Этот файл повторяет их значения для просмотра; при изменении токенов обновляйте оба места.</p></header>
+          <ul class="file-map">
+            <li><span>styles/tokens.css</span><span>Цвета, шрифты, отступы, радиусы, движение — для обеих тем</span></li>
+            <li><span>styles/base.css</span><span>Сброс, типографика, фокус, нативные поля, тултипы</span></li>
+            <li><span>shared/ui/</span><span>Button, IconButton, Page, PageHeader, Panel, Toolbar, Table, Pagination, Badge, StatusDot, Alert, EmptyState, ErrorState, Skeleton, Modal, Menu, Field, Input, Select, SearchInput, Segmented, ToggleChip, Checkbox, Stat, RankedList</span></li>
+            <li><span>shared/lib/format.ts</span><span>formatMoney, formatNumber, formatChange, formatDate, formatPeriod, pluralRu, formatCount</span></li>
+            <li><span>shared/charts/</span><span>chartTheme, ChartTooltip</span></li>
+            <li><span>shared/hooks/useModelStatus.ts</span><span>Сигнатура: статус локальной модели</span></li>
+            <li><span>shared/providers/ConfirmContext.tsx</span><span>useConfirm(message, title, { confirmLabel, tone })</span></li>
+            <li><span>components/shell/</span><span>AppShell, Sidebar, DatasetSwitcher, UserMenu, ModelStatus, BrandMark, nav.ts</span></li>
+          </ul>
+          <div class="code">import { Button, Page, PageHeader, Panel, Table, EmptyState } from '../shared/ui';
+import { formatCount, ROWS } from '../shared/lib/format';
+import { useConfirm } from '../shared/providers/ConfirmContext';
+
+const ok = await confirm('Таблица будет удалена.', 'Удалить базу?', { confirmLabel: 'Удалить' });
+
+&lt;Page&gt;
+  &lt;PageHeader title="Данные" description={formatCount(2000, ROWS)} actions={&lt;Button variant="primary"&gt;Загрузить&lt;/Button&gt;} /&gt;
+  &lt;Panel padding="none"&gt;…&lt;/Panel&gt;
+&lt;/Page&gt;</div>
+        </section>
+      </div>
+    </main>
+  </div>
+  <div class="copy-hint" id="copy-hint" role="status" aria-live="polite"></div>
+
+  <script>
+    (function () {
+      var root = document.documentElement;
+      var TOKENS = {
+        neutrals: [
+          ['--surface-sunken', 'Сайдбар, подложка зоны загрузки'],
+          ['--surface-page', 'Фон страницы'],
+          ['--surface-card', 'Панели, меню, окна'],
+          ['--surface-raised', 'Поля, вопрос в чате'],
+          ['--hairline', 'Разделители 8%'],
+          ['--hairline-strong', 'Рамки полей 14%'],
+          ['--text-primary', 'Основной текст'],
+          ['--text-secondary', 'Описания'],
+          ['--text-muted', 'Мета, оси'],
+          ['--fill-strong', 'Основная кнопка']
+        ],
+        accent: [
+          ['--accent', 'Заливки, выделение'],
+          ['--accent-text', 'Текст и линии акцентом'],
+          ['--accent-soft', 'Подложка выбранного'],
+          ['--on-accent', 'Текст на янтаре'],
+          ['--positive', 'Рост, успех'],
+          ['--negative', 'Падение, ошибка, удаление']
+        ],
+        charts: [
+          ['--chart-1', 'Ведущая серия'],
+          ['--chart-2', 'Вторая серия'],
+          ['--chart-3', 'Серия 3'],
+          ['--chart-4', 'Серия 4'],
+          ['--chart-5', 'Серия 5'],
+          ['--chart-6', 'Серия 6'],
+          ['--chart-neutral', 'Остальные столбцы'],
+          ['--chart-grid', 'Сетка']
+        ]
+      };
+
+      function renderSwatches() {
+        var styles = getComputedStyle(root);
+        document.querySelectorAll('[data-swatches]').forEach(function (box) {
+          var list = TOKENS[box.getAttribute('data-swatches')];
+          box.innerHTML = '';
+          list.forEach(function (t) {
+            var value = styles.getPropertyValue(t[0]).trim();
+            var b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'swatch';
+            b.setAttribute('data-copy', 'var(' + t[0] + ')');
+            b.setAttribute('aria-label', 'Скопировать var(' + t[0] + ')');
+            b.innerHTML = '<span class="swatch__chip" style="background:var(' + t[0] + ')"></span><span class="swatch__meta"><span class="swatch__name">' + t[0] + '</span><span class="swatch__value">' + value + '</span><span class="swatch__role">' + t[1] + '</span></span>';
+            box.appendChild(b);
+          });
+        });
+      }
+
+      function renderSpace() {
+        var box = document.getElementById('space-scale');
+        [4, 8, 12, 16, 20, 24, 32, 40, 48, 64].forEach(function (v, i) {
+          var name = '--space-' + [1, 2, 3, 4, 5, 6, 8, 10, 12, 16][i];
+          var row = document.createElement('button');
+          row.type = 'button';
+          row.className = 'space-row';
+          row.setAttribute('data-copy', 'var(' + name + ')');
+          row.style.textAlign = 'left';
+          row.innerHTML = '<span>' + name + '</span><span>' + v + 'px</span><span class="space-bar" style="width:' + v * 4 + 'px;max-width:100%"></span>';
+          box.appendChild(row);
+        });
+      }
+
+      // Тема
+      function setTheme(t) {
+        root.setAttribute('data-theme', t);
+        try { localStorage.setItem('styleguide-theme', t); } catch (e) {}
+        document.querySelectorAll('[data-theme-set]').forEach(function (b) {
+          var on = b.getAttribute('data-theme-set') === t;
+          b.classList.toggle('is-selected', on);
+          b.setAttribute('aria-checked', on ? 'true' : 'false');
+        });
+        renderSwatches();
+      }
+      document.querySelectorAll('[data-theme-set]').forEach(function (b) {
+        b.addEventListener('click', function () { setTheme(b.getAttribute('data-theme-set')); });
+      });
+
+      // Копирование токенов
+      var hint = document.getElementById('copy-hint');
+      var hintTimer;
+      document.addEventListener('click', function (e) {
+        var el = e.target.closest('[data-copy]');
+        if (!el) return;
+        var text = el.getAttribute('data-copy');
+        var done = function () {
+          hint.textContent = 'Скопировано: ' + text;
+          hint.classList.add('is-visible');
+          clearTimeout(hintTimer);
+          hintTimer = setTimeout(function () { hint.classList.remove('is-visible'); }, 1400);
+        };
+        if (navigator.clipboard) navigator.clipboard.writeText(text).then(done, done); else done();
+      });
+
+      // Навигация: подсветка текущего раздела
+      var links = Array.prototype.slice.call(document.querySelectorAll('.doc-nav a[href^="#"]'));
+      var targets = links.map(function (a) { return document.getElementById(a.getAttribute('href').slice(1)); }).filter(Boolean);
+      var observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (!entry.isIntersecting) return;
+          var id = entry.target.id;
+          links.forEach(function (a) {
+            var on = a.getAttribute('href') === '#' + id;
+            a.classList.toggle('is-active', on);
+            if (on) a.setAttribute('aria-current', 'true'); else a.removeAttribute('aria-current');
+          });
+        });
+      }, { rootMargin: '-15% 0px -75% 0px' });
+      targets.forEach(function (t) { observer.observe(t); });
+
+      // Фильтр разделов
+      var filter = document.getElementById('nav-filter');
+      filter.addEventListener('input', function () {
+        var q = filter.value.trim().toLowerCase();
+        document.querySelectorAll('#nav-list li').forEach(function (li) {
+          if (li.classList.contains('doc-nav__group')) { li.hidden = q.length > 0; return; }
+          li.hidden = q.length > 0 && li.textContent.toLowerCase().indexOf(q) === -1;
+        });
+      });
+      filter.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+          var first = document.querySelector('#nav-list li:not([hidden]) a');
+          if (first) { first.click(); filter.blur(); }
+        }
+        if (e.key === 'Escape') { filter.value = ''; filter.dispatchEvent(new Event('input')); }
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === '/' && document.activeElement !== filter && !/input|textarea/i.test(document.activeElement.tagName)) {
+          e.preventDefault();
+          if (window.innerWidth < 1024) document.body.classList.add('nav-open');
+          filter.focus();
+        }
+      });
+
+      // Мобильная панель
+      var openBtn = document.getElementById('nav-open');
+      function closeNav() { document.body.classList.remove('nav-open'); openBtn.setAttribute('aria-expanded', 'false'); }
+      openBtn.addEventListener('click', function () { document.body.classList.add('nav-open'); openBtn.setAttribute('aria-expanded', 'true'); });
+      document.getElementById('doc-scrim').addEventListener('click', closeNav);
+      links.forEach(function (a) { a.addEventListener('click', closeNav); });
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeNav(); });
+
+      // Демо: segmented и чипы
+      document.querySelectorAll('[data-segmented]').forEach(function (group) {
+        group.addEventListener('click', function (e) {
+          var b = e.target.closest('.ui-segmented__item'); if (!b) return;
+          group.querySelectorAll('.ui-segmented__item').forEach(function (x) { x.classList.toggle('is-selected', x === b); x.setAttribute('aria-checked', x === b ? 'true' : 'false'); });
+        });
+      });
+      document.querySelectorAll('[data-chips] .ui-chip').forEach(function (c) {
+        c.addEventListener('click', function () { var on = !c.classList.contains('is-on'); c.classList.toggle('is-on', on); c.setAttribute('aria-pressed', on ? 'true' : 'false'); });
+      });
+
+      // Демо: меню
+      document.querySelectorAll('[data-menu]').forEach(function (rootEl) {
+        var trigger = rootEl.querySelector('[aria-haspopup]');
+        var menu = rootEl.querySelector('[role="menu"]');
+        var items = function () { return Array.prototype.slice.call(menu.querySelectorAll('[role="menuitem"]')); };
+        function open() { menu.hidden = false; trigger.setAttribute('aria-expanded', 'true'); items()[0].focus(); }
+        function close(focus) { menu.hidden = true; trigger.setAttribute('aria-expanded', 'false'); if (focus) trigger.focus(); }
+        trigger.addEventListener('click', function () { menu.hidden ? open() : close(false); });
+        menu.addEventListener('click', function (e) { if (e.target.closest('[role="menuitem"]')) close(true); });
+        rootEl.addEventListener('keydown', function (e) {
+          if (menu.hidden) return;
+          var list = items(); var i = list.indexOf(document.activeElement);
+          if (e.key === 'Escape') { e.stopPropagation(); close(true); }
+          if (e.key === 'ArrowDown') { e.preventDefault(); list[(i + 1) % list.length].focus(); }
+          if (e.key === 'ArrowUp') { e.preventDefault(); list[(i - 1 + list.length) % list.length].focus(); }
+        });
+        document.addEventListener('mousedown', function (e) { if (!rootEl.contains(e.target)) close(false); });
+      });
+
+      // Демо: окно подтверждения
+      var modal = document.getElementById('modal');
+      var modalOpen = document.getElementById('modal-open');
+      function closeModal() { modal.hidden = true; modalOpen.focus(); }
+      modalOpen.addEventListener('click', function () { modal.hidden = false; modal.querySelector('.ui-modal__footer .ui-btn').focus(); });
+      modal.addEventListener('mousedown', function (e) { if (e.target === modal) closeModal(); });
+      modal.querySelectorAll('[data-close]').forEach(function (b) { b.addEventListener('click', closeModal); });
+      modal.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') { e.stopPropagation(); closeModal(); }
+        if (e.key === 'Tab') {
+          var f = Array.prototype.slice.call(modal.querySelectorAll('button'));
+          var first = f[0], last = f[f.length - 1];
+          if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+          else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+        }
+      });
+
+      // Демо: движение
+      document.getElementById('motion-play').addEventListener('click', function () {
+        document.querySelectorAll('#motion-demo .box').forEach(function (b, i) {
+          b.classList.remove('play'); void b.offsetWidth; b.style.animationDelay = (i * 50) + 'ms'; b.classList.add('play');
+        });
+      });
+
+      renderSpace();
+      var saved = 'dark';
+      try { saved = localStorage.getItem('styleguide-theme') || localStorage.getItem('theme') || 'dark'; } catch (e) {}
+      setTheme(saved === 'light' ? 'light' : 'dark');
+    })();
+  </script>
+</body>
+</html>
